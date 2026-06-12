@@ -48,13 +48,13 @@ async function register({ username, email, password, roles }) {
   };
 }
 
-async function login({ identifier, password }) {
-  if (!identifier || !password) {
-    throw { status: 400, message: "Username/email dan password wajib diisi" };
+async function login({ email, password }) {
+  if (!email || !password) {
+    throw { status: 400, message: "Email dan password wajib diisi" };
   }
 
   const user = await prisma.user.findFirst({
-    where: { OR: [{ username: identifier }, { email: identifier }] },
+    where: { email },
     include: { roles: true },
   });
   if (!user) {

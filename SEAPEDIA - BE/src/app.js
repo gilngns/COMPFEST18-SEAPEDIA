@@ -17,6 +17,8 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", require("./modules/auth/auth.routes"));
 app.use("/api/reviews", require("./modules/reviews/review.routes"));
+app.use("/api/seller", require("./modules/seller/seller.routes"));
+app.use("/api/catalog", require("./modules/catalog/catalog.routes")); 
 
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint tidak ditemukan" });

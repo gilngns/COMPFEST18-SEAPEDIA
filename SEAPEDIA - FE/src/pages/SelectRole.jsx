@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 const ROLE_INFO = {
   BUYER: {
-    title: "Pembeli",
+    title: "Buyer",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
         <path fillRule="evenodd" d="M7.5 6v.75H5.513c-.96 0-1.764.724-1.865 1.679l-1.263 12A1.875 1.875 0 0 0 4.25 22.5h15.5a1.875 1.875 0 0 0 1.865-2.071l-1.263-12a1.875 1.875 0 0 0-1.865-1.679H16.5V6a4.5 4.5 0 1 0-9 0ZM12 3a3 3 0 0 0-3 3v.75h6V6a3 3 0 0 0-3-3Zm-3 8.25a3 3 0 1 0 6 0v-.75a.75.75 0 0 1 1.5 0v.75a4.5 4.5 0 1 1-9 0v-.75a.75.75 0 0 1 1.5 0v.75Z" clipRule="evenodd" />
@@ -12,7 +12,7 @@ const ROLE_INFO = {
     ),
   },
   SELLER: {
-    title: "Penjual",
+    title: "Seller",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
         <path d="M5.223 2.25c-.497 0-.974.198-1.325.55l-1.3 1.298A3.75 3.75 0 0 0 1.5 6.75v.75c0 2.071 1.68 3.75 3.75 3.75h.077c.365-.002.723-.058 1.066-.164l2.846-1.139a.75.75 0 0 0 .47-.697V3.375a1.125 1.125 0 0 0-1.125-1.125H5.223ZM11.25 3.375v5.875a.75.75 0 0 0 .47.697l2.846 1.139c.343.106.7.162 1.066.164h.077c2.07 0 3.75-1.679 3.75-3.75v-.75c0-1.046-.43-1.996-1.098-2.652l-1.3-1.298a1.875 1.875 0 0 0-1.325-.55H11.25ZM18.777 2.25c-.497 0-.974.198-1.325.55l-1.3 1.298a1.875 1.875 0 0 0-.428.697v5.875a.75.75 0 0 0 .47.697l2.846 1.139c.343.106.7.162 1.066.164h.077c2.07 0 3.75-1.679 3.75-3.75v-.75c0-1.046-.43-1.996-1.098-2.652l-1.3-1.298a3.75 3.75 0 0 0-1.325-.55H18.777Z" />
@@ -21,7 +21,7 @@ const ROLE_INFO = {
     ),
   },
   DRIVER: {
-    title: "Mitra Kurir",
+    title: "Driver",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
         <path d="M3.375 4.5C2.339 4.5 1.5 5.34 1.5 6.375V13.5h12V6.375c0-1.036-.84-1.875-1.875-1.875h-8.25ZM13.5 15h-12v2.625c0 1.035.84 1.875 1.875 1.875h.375a3 3 0 1 0 6 0h3a.75.75 0 0 0 .75-.75V15Z" />
@@ -47,7 +47,7 @@ export default function SelectRole() {
       setUser({ ...user, activeRole: res.data.activeRole });
       navigate("/dashboard");
     } catch (err) {
-      alert(err.response?.data?.error || "Gagal memilih peran");
+      alert(err.response?.data?.error || "Failed to select role");
     }
   }
 
@@ -65,10 +65,10 @@ export default function SelectRole() {
 
       <div className="text-center mb-10 max-w-[500px] relative z-10">
         <h1 className="text-[2.5rem] font-extrabold text-white tracking-tight leading-tight mb-3 drop-shadow-md">
-          Masuk Sebagai
+          Sign in as
         </h1>
         <p className="text-gray-200 text-[15px] leading-relaxed drop-shadow-sm font-medium">
-          Pilih peran Anda untuk melanjutkan. Anda dapat mengubah peran ini nanti di pengaturan profil.
+          Choose your role to continue. You can change this later in profile settings.
         </p>
       </div>
 
@@ -100,7 +100,7 @@ export default function SelectRole() {
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
-        Kembali ke Halaman Utama
+        Back to Home
       </Link>
     </div>
   );

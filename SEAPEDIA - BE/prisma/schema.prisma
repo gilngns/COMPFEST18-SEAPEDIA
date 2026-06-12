@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ===== ENUMS =====
-
 enum RoleType {
   ADMIN
   SELLER
@@ -37,8 +35,6 @@ enum WalletTxType {
   EARNING
 }
 
-// ===== USER & ROLE =====
-
 model User {
   id         String     @id @default(uuid())
   username   String     @unique
@@ -64,8 +60,6 @@ model UserRole {
   @@unique([userId, role])
 }
 
-// ===== SELLER: STORE & PRODUCT =====
-
 model Store {
   id          String    @id @default(uuid())
   name        String    @unique
@@ -85,14 +79,13 @@ model Product {
   description String?
   price       Decimal     @db.Decimal(15, 2)
   stock       Int         @default(0)
+  isActive    Boolean     @default(true)
   store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   cartItems   CartItem[]
   orderItems  OrderItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
-
-// ===== BUYER: WALLET, ADDRESS, CART =====
 
 model Wallet {
   id           String              @id @default(uuid())
@@ -144,8 +137,6 @@ model CartItem {
   @@unique([cartId, productId])
 }
 
-// ===== ORDER & LIFECYCLE =====
-
 model Order {
   id             String               @id @default(uuid())
   buyerId        String
@@ -192,8 +183,6 @@ model OrderStatusHistory {
   order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
-// ===== DISCOUNT =====
-
 model Voucher {
   id             String   @id @default(uuid())
   code           String   @unique
@@ -217,8 +206,6 @@ model Promo {
   createdAt   DateTime @default(now())
 }
 
-// ===== DELIVERY =====
-
 model Delivery {
   id          String    @id @default(uuid())
   orderId     String    @unique
@@ -231,7 +218,6 @@ model Delivery {
   createdAt   DateTime  @default(now())
 }
 
-// ===== PUBLIC APP REVIEW =====
 
 model AppReview {
   id        String   @id @default(uuid())
@@ -241,7 +227,6 @@ model AppReview {
   createdAt DateTime @default(now())
 }
 
-// ===== SYSTEM CLOCK (simulate time) =====
 
 model SystemClock {
   id        Int      @id @default(1)

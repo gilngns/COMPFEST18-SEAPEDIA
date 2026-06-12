@@ -8,8 +8,8 @@ import { useAuth } from "../context/AuthContext";
 import { Button, Input } from "../components/ui";
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Username atau email harus diisi"),
-  password: z.string().min(1, "Kata sandi harus diisi"),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password cannot be empty"),
 });
 
 export default function Login() {
@@ -47,7 +47,7 @@ export default function Login() {
         navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.error || "Login gagal");
+      setError(err.response?.data?.error || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -70,15 +70,16 @@ export default function Login() {
       <div className="w-full max-w-[420px] relative z-10 bg-white/95 backdrop-blur-xl p-8 sm:p-10 rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-white/40">
         <div className="text-center mb-8">
           <h2 className="text-[2.25rem] font-extrabold text-[#147287] tracking-tight mb-2 drop-shadow-sm">SEAPEDIA</h2>
-          <p className="text-gray-500 text-[15px] font-medium">Selamat datang kembali</p>
+          <p className="text-gray-500 text-[15px] font-medium">Welcome back</p>
         </div>
         
         <form onSubmit={handleSubmit(onSubmit)}>
           <Input
-            label="Username atau Email"
-            placeholder="Masukkan username atau email"
-            {...register("identifier")}
-            error={errors.identifier?.message}
+            label="Email"
+            type="email"
+            placeholder="Enter your email"
+            {...register("email")}
+            error={errors.email?.message}
             iconLeft={
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-[1.15rem] h-[1.15rem]">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -86,11 +87,11 @@ export default function Login() {
             }
           />
           
-          <div className="mb-2">
+          <div className="mb-7">
             <Input
-              label="Kata Sandi"
+              label="Password"
               type={showPassword ? "text" : "password"}
-              placeholder="Masukkan kata sandi"
+              placeholder="Enter password"
               {...register("password")}
               error={errors.password?.message}
               iconLeft={
@@ -114,24 +115,18 @@ export default function Login() {
               }
             />
           </div>
-          
-          <div className="flex justify-end mb-8">
-            <Link to="/forgot-password" className="text-[13.5px] font-semibold text-[#147287] hover:underline hover:text-[#0b3e4a] transition-colors">
-              Lupa kata sandi?
-            </Link>
-          </div>
 
           {error && <p className="text-red-600 text-sm mb-5 text-center font-medium bg-red-50/90 py-3 px-4 rounded-xl border border-red-200">{error}</p>}
           
           <Button type="submit" variant="primary" disabled={loading} className="py-3.5 text-[15px] font-bold rounded-xl tracking-wide shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all w-full mb-8">
-            {loading ? "Memproses..." : "Masuk Sekarang"}
+            {loading ? "Processing..." : "Sign In Now"}
           </Button>
         </form>
 
         <p className="text-center text-[14.5px] text-gray-500 font-medium">
-          Belum punya akun?{" "}
+          Don't have an account?{" "}
           <Link to="/register" className="text-[#147287] font-bold hover:underline hover:text-[#0b3e4a] transition-colors">
-            Daftar di sini
+            Sign up here
           </Link>
         </p>
       </div>

@@ -12,7 +12,7 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Username atau email harus diisi"),
+  email: z.string().email("Format email tidak valid"),
   password: z.string().min(1, "Kata sandi harus diisi"),
 });
 

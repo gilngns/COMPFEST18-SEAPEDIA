@@ -8,19 +8,19 @@ import { useAuth } from "../context/AuthContext";
 import { Button, Input, Card } from "../components/ui";
 
 const ROLES = [
-  { value: "BUYER", label: "Pembeli (Buyer)" },
-  { value: "SELLER", label: "Penjual (Seller)" },
-  { value: "DRIVER", label: "Mitra Kurir (Driver)" },
+  { value: "BUYER", label: "Buyer" },
+  { value: "SELLER", label: "Seller" },
+  { value: "DRIVER", label: "Driver" },
 ];
 
 const registerSchema = z.object({
-  username: z.string().min(3, "Username minimal 3 karakter"),
-  email: z.string().email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
-  confirm: z.string().min(6, "Konfirmasi sandi minimal 6 karakter"),
-  roles: z.array(z.string()).min(1, "Pilih minimal satu peran"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirm: z.string().min(6, "Confirm password must be at least 6 characters"),
+  roles: z.array(z.string()).min(1, "Select at least one role"),
 }).refine((data) => data.password === data.confirm, {
-  message: "Konfirmasi kata sandi tidak cocok",
+  message: "Passwords do not match",
   path: ["confirm"],
 });
 
@@ -56,10 +56,10 @@ export default function Register() {
         password: data.password,
         roles: data.roles,
       });
-      // sukses → ke login
+      // success -> to login
       navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.error || "Registrasi gagal");
+      setError(err.response?.data?.error || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -70,13 +70,13 @@ export default function Register() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-seapedia">SEAPEDIA</h1>
-          <p className="text-gray-500 text-sm">Daftar akun baru untuk mulai berbelanja.</p>
+          <p className="text-gray-500 text-sm">Create a new account to start shopping.</p>
         </div>
         <Card>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Input
-              label="Nama Pengguna"
-              placeholder="Masukkan nama pengguna"
+              label="Username"
+              placeholder="Enter username"
               {...register("username")}
               error={errors.username?.message}
             />
@@ -88,21 +88,21 @@ export default function Register() {
               error={errors.email?.message}
             />
             <Input
-              label="Kata Sandi"
+              label="Password"
               type="password"
               placeholder="••••••••"
               {...register("password")}
               error={errors.password?.message}
             />
             <Input
-              label="Konfirmasi Kata Sandi"
+              label="Confirm Password"
               type="password"
               placeholder="••••••••"
               {...register("confirm")}
               error={errors.confirm?.message}
             />
 
-            <p className="font-semibold text-gray-700 mb-2 mt-2 text-sm">Pilih Peran Anda</p>
+            <p className="font-semibold text-gray-700 mb-2 mt-2 text-sm">Select Your Role</p>
             <div className="space-y-2 mb-1">
               {ROLES.map((r) => (
                 <label
@@ -124,13 +124,13 @@ export default function Register() {
             {error && <p className="text-red-500 text-sm mb-3 mt-4">{error}</p>}
 
             <Button type="submit" disabled={loading} className="mt-4">
-              {loading ? "Memproses..." : "Daftar"}
+              {loading ? "Processing..." : "Sign Up"}
             </Button>
           </form>
           <p className="text-center text-sm text-gray-500 mt-4">
-            Sudah memiliki akun?{" "}
+            Already have an account?{" "}
             <Link to="/login" className="text-seapedia font-semibold hover:underline">
-              Masuk di sini
+              Sign in here
             </Link>
           </p>
         </Card>
