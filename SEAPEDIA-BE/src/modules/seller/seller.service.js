@@ -1,25 +1,43 @@
 const prisma = require("../../config/prisma");
 
-async function upsertStore(userId, { name, description }) {
+async function upsertStore(userId, { name, description, domain, slogan, logoUrl, isOpen }) {
   if (!name || !name.trim()) {
     throw { status: 400, message: "Nama toko wajib diisi" };
   }
   const cleanName = name.trim();
+  const cleanDomain = domain?.trim() || null;
 
   const existing = await prisma.store.findUnique({ where: { name: cleanName } });
   if (existing && existing.ownerId !== userId) {
     throw { status: 409, message: "Nama toko sudah digunakan" };
   }
+  
+  if (cleanDomain) {
+    const existingDomain = await prisma.store.findUnique({ where: { domain: cleanDomain } });
+    if (existingDomain && existingDomain.ownerId !== userId) {
+      throw { status: 409, message: "Domain toko sudah digunakan" };
+    }
+  }
+
+  const data = {
+    name: cleanName,
+    description: description || null,
+    domain: cleanDomain,
+    slogan: slogan?.trim() || null,
+  };
+  
+  if (logoUrl !== undefined) data.logoUrl = logoUrl;
+  if (isOpen !== undefined) data.isOpen = isOpen;
 
   const myStore = await prisma.store.findUnique({ where: { ownerId: userId } });
   if (myStore) {
     return prisma.store.update({
       where: { ownerId: userId },
-      data: { name: cleanName, description },
+      data,
     });
   }
   return prisma.store.create({
-    data: { name: cleanName, description, ownerId: userId },
+    data: { ...data, ownerId: userId },
   });
 }
 
@@ -37,7 +55,7 @@ async function getPublicStore(storeId) {
       id: true, name: true, description: true, createdAt: true,
       products: {
         where: { isActive: true },
-        select: { id: true, name: true, price: true, stock: true },
+        select: { id: true, name: true, price: true, stock: true, unit: true },
       },
     },
   });
@@ -70,6 +88,8 @@ async function createProduct(userId, body) {
       description: body.description || null,
       price: Number(body.price),
       stock: Number(body.stock),
+      unit: body.unit || "pcs",
+      imageUrl: body.imageUrl || null,
     },
   });
 }
@@ -101,7 +121,9 @@ async function updateProduct(userId, productId, body) {
       description: body.description ?? product.description,
       price: body.price != null ? Number(body.price) : product.price,
       stock: body.stock != null ? Number(body.stock) : product.stock,
-      isActive: body.isActive != null ? body.isActive : product.isActive,  
+      unit: body.unit !== undefined ? body.unit : product.unit,
+      isActive: body.isActive != null ? body.isActive : product.isActive,
+      imageUrl: body.imageUrl !== undefined ? body.imageUrl : product.imageUrl,
     },
   });
 }

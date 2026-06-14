@@ -63,7 +63,11 @@ model UserRole {
 model Store {
   id          String    @id @default(uuid())
   name        String    @unique
+  domain      String?   @unique
+  slogan      String?
   description String?
+  logoUrl     String?
+  isOpen      Boolean   @default(true)
   ownerId     String    @unique
   owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   products    Product[]
@@ -79,7 +83,9 @@ model Product {
   description String?
   price       Decimal     @db.Decimal(15, 2)
   stock       Int         @default(0)
+  unit        String      @default("pcs")
   isActive    Boolean     @default(true)
+  imageUrl    String?
   store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   cartItems   CartItem[]
   orderItems  OrderItem[]

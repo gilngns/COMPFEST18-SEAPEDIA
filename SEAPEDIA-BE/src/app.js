@@ -11,6 +11,8 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 app.get("/", (req, res) => {
   res.json({ message: "SEAPEDIA API jalan 🚀" });
 });
