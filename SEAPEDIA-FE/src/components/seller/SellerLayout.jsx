@@ -25,7 +25,7 @@ const menu = [
   { to: "/seller/finance", label: "Keuangan", icon: Wallet },
 ];
 
-export default function SellerLayout({ children, storeName = "Toko Saya" }) {
+export default function SellerLayout({ children, storeName = "Toko Saya", storeLogo }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -40,8 +40,12 @@ export default function SellerLayout({ children, storeName = "Toko Saya" }) {
       <aside className="w-60 bg-white border-r border-gray-200 flex flex-col fixed h-screen">
         {/* store identity */}
         <div className="p-6 text-center border-b border-gray-100">
-          <div className="w-16 h-16 mx-auto rounded-full bg-white border-2 border-seapedia flex items-center justify-center mb-3 shadow-sm">
-            <ShoppingBag className="w-7 h-7 text-seapedia" />
+          <div className="w-16 h-16 mx-auto rounded-full bg-white border-2 border-seapedia flex items-center justify-center mb-3 shadow-sm overflow-hidden">
+            {storeLogo ? (
+              <img src={`http://localhost:5000${storeLogo}`} alt="Store Logo" className="w-full h-full object-cover" />
+            ) : (
+              <ShoppingBag className="w-7 h-7 text-seapedia" />
+            )}
           </div>
           <h3 className="font-bold text-seapedia text-[15px]">{storeName}</h3>
           <div className="flex items-center justify-center gap-1 mt-1">
@@ -60,6 +64,7 @@ export default function SellerLayout({ children, storeName = "Toko Saya" }) {
               <NavLink
                 key={m.to}
                 to={m.to}
+                end={m.to === "/seller"}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                     isActive
@@ -83,12 +88,6 @@ export default function SellerLayout({ children, storeName = "Toko Saya" }) {
         {/* bottom */}
         <div className="p-4 border-t border-gray-100 flex flex-col gap-1">
           <button
-            onClick={() => navigate("/seller/products?new=1")}
-            className="w-full flex items-center justify-center gap-2 bg-accent text-white py-2.5 rounded-lg font-semibold text-sm hover:opacity-90 mb-4"
-          >
-            <Plus className="w-4 h-4" /> Tambah Produk Baru
-          </button>
-          <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50"
           >
@@ -100,7 +99,7 @@ export default function SellerLayout({ children, storeName = "Toko Saya" }) {
       {/* MAIN (ml-60 karena sidebar fixed) */}
       <div className="flex-1 flex flex-col ml-60">
         {/* topbar */}
-        <header className="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-10">
+        <header className="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-40">
           <h1 className="text-lg font-bold text-seapedia">
             SEAPEDIA Seller Center
           </h1>

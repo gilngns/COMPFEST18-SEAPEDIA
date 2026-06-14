@@ -7,6 +7,11 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SelectRole from "./pages/SelectRole";
 import SellerDashboard from "./pages/seller/SellerDashboard";
+import SellerProducts from "./pages/seller/SellerProducts";
+import SellerStore from "./pages/seller/SellerStore";
+import SellerFinance from "./pages/seller/SellerFinance";
+import SellerOrders from "./pages/seller/SellerOrders";
+
 
 import { useAuth } from "./context/AuthContext";
 import { Button } from "./components/ui";
@@ -50,6 +55,38 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <SellerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/products"
+              element={
+                <ProtectedRoute>
+                  <SellerProducts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/orders"
+              element={
+                <ProtectedRoute>
+                  <SellerOrders />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/store"
+              element={
+                <ProtectedRoute>
+                  <SellerStore />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/seller/finance"
+              element={
+                <ProtectedRoute>
+                  <SellerFinance />
                 </ProtectedRoute>
               }
             />

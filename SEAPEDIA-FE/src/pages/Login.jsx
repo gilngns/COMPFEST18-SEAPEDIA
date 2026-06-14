@@ -6,6 +6,7 @@ import * as z from "zod";
 import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { Button, Input } from "../components/ui";
+import Swal from "sweetalert2";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -15,15 +16,8 @@ const loginSchema = z.object({
 export default function Login() {
   const navigate = useNavigate();
   const { setSession, user } = useAuth();
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  if (user) {
-    if (!user.activeRole) return <Navigate to="/select-role" replace />;
-    if (user.activeRole === "SELLER") return <Navigate to="/seller" replace />;
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const {
     register,
@@ -33,8 +27,13 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   });
 
+  if (user) {
+    if (!user.activeRole) return <Navigate to="/select-role" replace />;
+    if (user.activeRole === "SELLER") return <Navigate to="/seller" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
+
   async function onSubmit(data) {
-    setError("");
     setLoading(true);
     try {
       const res = await api.post("/auth/login", data);
@@ -52,7 +51,15 @@ export default function Login() {
         }
       }
     } catch (err) {
-      setError(err.response?.data?.error || "Login failed");
+      const errorMessage = err.response 
+        ? (err.response.data?.error || "Kredensial tidak valid")
+        : "Tidak dapat terhubung ke server. Pastikan backend berjalan.";
+        
+      Swal.fire({
+        icon: "error",
+        title: "Login Gagal",
+        text: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -120,10 +127,8 @@ export default function Login() {
               }
             />
           </div>
-
-          {error && <p className="text-red-600 text-sm mb-5 text-center font-medium bg-red-50/90 py-3 px-4 rounded-xl border border-red-200">{error}</p>}
           
-          <Button type="submit" variant="primary" disabled={loading} className="py-3.5 text-[15px] font-bold rounded-xl tracking-wide shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all w-full mb-8">
+          <Button type="submit" disabled={loading} className="py-3.5 text-[15px] font-bold rounded-xl tracking-wide shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all w-full mb-8">
             {loading ? "Processing..." : "Sign In Now"}
           </Button>
         </form>

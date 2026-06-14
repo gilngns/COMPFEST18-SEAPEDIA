@@ -6,6 +6,7 @@ import * as z from "zod";
 import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { Button, Input, Card } from "../components/ui";
+import Swal from "sweetalert2";
 
 const ROLES = [
   { value: "BUYER", label: "Buyer" },
@@ -27,13 +28,7 @@ const registerSchema = z.object({
 export default function Register() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  if (user) {
-    if (!user.activeRole) return <Navigate to="/select-role" replace />;
-    return <Navigate to="/dashboard" replace />;
-  }
 
   const {
     register,
@@ -46,8 +41,12 @@ export default function Register() {
     }
   });
 
+  if (user) {
+    if (!user.activeRole) return <Navigate to="/select-role" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
+
   async function onSubmit(data) {
-    setError("");
     setLoading(true);
     try {
       await api.post("/auth/register", {
@@ -57,9 +56,24 @@ export default function Register() {
         roles: data.roles,
       });
       // success -> to login
+      await Swal.fire({
+        icon: "success",
+        title: "Pendaftaran Berhasil!",
+        text: "Akun Anda berhasil dibuat. Silakan login.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.error || "Registration failed");
+      const errorMessage = err.response 
+        ? (err.response.data?.error || "Pendaftaran gagal")
+        : "Tidak dapat terhubung ke server. Pastikan backend berjalan.";
+        
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -120,8 +134,6 @@ export default function Register() {
               ))}
             </div>
             {errors.roles && <p className="text-red-500 text-xs mt-1.5 mb-4 font-medium">{errors.roles.message}</p>}
-
-            {error && <p className="text-red-500 text-sm mb-3 mt-4">{error}</p>}
 
             <Button type="submit" disabled={loading} className="mt-4">
               {loading ? "Processing..." : "Sign Up"}

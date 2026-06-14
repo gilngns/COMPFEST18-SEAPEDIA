@@ -1,23 +1,35 @@
 import { useState } from "react";
 import api from "../../lib/api";
-import { Store, X } from "lucide-react";
+import { Store } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function CreateStoreModal({ onCreated }) {
   const [form, setForm] = useState({ name: "", description: "" });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-    if (!form.name.trim()) return setError("Nama toko wajib diisi");
+    if (!form.name.trim()) {
+      return Swal.fire({ icon: "warning", title: "Peringatan", text: "Nama toko wajib diisi!" });
+    }
 
     setLoading(true);
     try {
       const res = await api.post("/seller/store", form);
+      Swal.fire({
+        icon: "success",
+        title: "Toko Dibuat!",
+        text: "Selamat, toko Anda berhasil dibuat.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
       onCreated(res.data.data); // kasih tau parent toko udah jadi
     } catch (err) {
-      setError(err.response?.data?.error || "Gagal membuat toko");
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: err.response?.data?.error || "Gagal membuat toko",
+      });
     } finally {
       setLoading(false);
     }
@@ -71,8 +83,6 @@ export default function CreateStoreModal({ onCreated }) {
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-seapedia resize-none"
             />
           </div>
-
-          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
           <button
             type="submit"

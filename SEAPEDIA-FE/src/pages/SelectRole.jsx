@@ -1,6 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import api from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import Swal from "sweetalert2";
 
 const ROLE_INFO = {
   BUYER: {
@@ -51,7 +52,11 @@ export default function SelectRole() {
         navigate("/dashboard");
       }
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to select role");
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: err.response?.data?.error || "Gagal memilih peran",
+      });
     }
   }
 

@@ -46,8 +46,8 @@ export default function SellerDashboard() {
 
     if (loading) {
         return (
-            <SellerLayout>
-                <p className="text-gray-400">Memuat...</p>
+            <SellerLayout storeName={store?.name} storeLogo={store?.logoUrl}>
+                <div className="flex items-center justify-center h-64 text-gray-500 font-medium">Memuat...</div>
             </SellerLayout>
         );
     }
@@ -59,7 +59,7 @@ export default function SellerDashboard() {
     });
 
     return (
-        <SellerLayout storeName={store?.name || "Toko Saya"}>
+        <SellerLayout storeName={store?.name || "Toko Saya"} storeLogo={store?.logoUrl}>
             {/* MODAL otomatis kalau belum punya toko */}
             {!store && (
                 <CreateStoreModal
