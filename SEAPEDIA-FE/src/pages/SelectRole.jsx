@@ -45,7 +45,11 @@ export default function SelectRole() {
       const res = await api.post("/auth/select-role", { role });
       localStorage.setItem("token", res.data.token);
       setUser({ ...user, activeRole: res.data.activeRole });
-      navigate("/dashboard");
+      if (res.data.activeRole === "SELLER") {
+        navigate("/seller");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       alert(err.response?.data?.error || "Failed to select role");
     }

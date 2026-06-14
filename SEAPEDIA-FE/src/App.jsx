@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SelectRole from "./pages/SelectRole";
+import SellerDashboard from "./pages/seller/SellerDashboard";
 
 import { useAuth } from "./context/AuthContext";
 import { Button } from "./components/ui";
@@ -44,6 +45,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+              path="/seller"
+              element={
+                <ProtectedRoute>
+                  <SellerDashboard />
+                </ProtectedRoute>
+              }
+            />
 
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>

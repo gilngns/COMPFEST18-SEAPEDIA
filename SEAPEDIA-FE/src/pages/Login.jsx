@@ -21,6 +21,7 @@ export default function Login() {
 
   if (user) {
     if (!user.activeRole) return <Navigate to="/select-role" replace />;
+    if (user.activeRole === "SELLER") return <Navigate to="/seller" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -44,7 +45,11 @@ export default function Login() {
         navigate("/select-role");
       } else {
         setSession({ ...user, roles, activeRole });
-        navigate("/dashboard");
+        if (activeRole === "SELLER") {
+          navigate("/seller");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       setError(err.response?.data?.error || "Login failed");
