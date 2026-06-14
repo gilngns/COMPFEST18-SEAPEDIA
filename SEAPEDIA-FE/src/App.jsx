@@ -2,15 +2,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import SelectRole from "./pages/SelectRole";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import SelectRole from "./pages/auth/SelectRole";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerProducts from "./pages/seller/SellerProducts";
 import SellerStore from "./pages/seller/SellerStore";
 import SellerFinance from "./pages/seller/SellerFinance";
 import SellerOrders from "./pages/seller/SellerOrders";
+import Landing from "./pages/shop/Landing";
+import SearchResults from "./pages/shop/SearchResults";
+import ProductDetail from "./pages/shop/ProductDetail";
+import Cart from "./pages/shop/Cart";
 
 
 import { useAuth } from "./context/AuthContext";
@@ -37,6 +42,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -91,7 +97,10 @@ export default function App() {
               }
             />
 
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/" element={<Landing />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

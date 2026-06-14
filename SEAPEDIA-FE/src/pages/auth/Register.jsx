@@ -3,9 +3,9 @@ import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import api from "../lib/api";
-import { useAuth } from "../context/AuthContext";
-import { Button, Input, Card } from "../components/ui";
+import api from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
+import { Button, Input, Card } from "../../components/ui";
 import Swal from "sweetalert2";
 
 const ROLES = [

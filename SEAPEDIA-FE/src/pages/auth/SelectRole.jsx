@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
-import api from "../lib/api";
-import { useAuth } from "../context/AuthContext";
+import api from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 import Swal from "sweetalert2";
 
 const ROLE_INFO = {
