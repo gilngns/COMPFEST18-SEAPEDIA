@@ -16,7 +16,17 @@ import Landing from "./pages/shop/Landing";
 import SearchResults from "./pages/shop/SearchResults";
 import ProductDetail from "./pages/shop/ProductDetail";
 import Cart from "./pages/shop/Cart";
+import Checkout from "./pages/shop/Checkout";
 
+import BuyerLayout from "./components/buyer/BuyerLayout";
+import BuyerDashboard from "./pages/buyer/BuyerDashboard";
+import BuyerOrders from "./pages/buyer/BuyerOrders";
+import BuyerWallet from "./pages/buyer/BuyerWallet";
+import BuyerAddress from "./pages/buyer/BuyerAddress";
+import DriverLayout from "./components/driver/DriverLayout";
+import DriverDashboard from "./pages/driver/DriverDashboard";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 import { useAuth } from "./context/AuthContext";
 import { Button } from "./components/ui";
@@ -59,7 +69,7 @@ export default function App() {
           <Route
               path="/seller"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["SELLER"]}>
                   <SellerDashboard />
                 </ProtectedRoute>
               }
@@ -67,7 +77,7 @@ export default function App() {
             <Route
               path="/seller/products"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["SELLER"]}>
                   <SellerProducts />
                 </ProtectedRoute>
               }
@@ -75,7 +85,7 @@ export default function App() {
             <Route
               path="/seller/orders"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["SELLER"]}>
                   <SellerOrders />
                 </ProtectedRoute>
               }
@@ -83,7 +93,7 @@ export default function App() {
             <Route
               path="/seller/store"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["SELLER"]}>
                   <SellerStore />
                 </ProtectedRoute>
               }
@@ -91,15 +101,63 @@ export default function App() {
             <Route
               path="/seller/finance"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={["SELLER"]}>
                   <SellerFinance />
                 </ProtectedRoute>
               }
             />
 
+          {/* BUYER SHELL */}
+          <Route
+            path="/buyer"
+            element={
+              <ProtectedRoute allowedRoles={["BUYER"]}>
+                <BuyerLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<BuyerDashboard />} />
+            <Route path="orders" element={<BuyerOrders />} />
+            <Route path="wallet" element={<BuyerWallet />} />
+            <Route path="address" element={<BuyerAddress />} />
+          </Route>
+
+          {/* DRIVER SHELL */}
+          <Route
+            path="/driver"
+            element={
+              <ProtectedRoute allowedRoles={["DRIVER"]}>
+                <DriverLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DriverDashboard />} />
+          </Route>
+
+          {/* ADMIN SHELL */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+          </Route>
+
           <Route path="/search" element={<SearchResults />} />
           <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
+          <Route path="/cart" element={
+            <ProtectedRoute allowedRoles={["BUYER"]}>
+              <Cart />
+            </ProtectedRoute>
+          } />
+          <Route path="/checkout" element={
+            <ProtectedRoute allowedRoles={["BUYER"]}>
+              <Checkout />
+            </ProtectedRoute>
+          } />
           <Route path="/" element={<Landing />} />
         </Routes>
       </BrowserRouter>

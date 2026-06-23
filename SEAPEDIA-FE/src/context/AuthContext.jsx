@@ -28,7 +28,10 @@ export function AuthProvider({ children }) {
       await api.post("/auth/logout");
     } finally {
       setUser(null);
-      window.location.href = "/login";
+      const path = window.location.pathname;
+      if (path !== "/" && path !== "/search" && !path.startsWith("/product")) {
+        window.location.href = "/login";
+      }
     }
   }
 

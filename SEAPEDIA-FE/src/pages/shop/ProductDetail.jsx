@@ -1,82 +1,143 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import api from "../../lib/api";
+import Swal from "sweetalert2";
 import {
     Search, Bell, ShoppingCart, User, Star, Check,
     Truck, MessageSquare, Minus, Plus
 } from "lucide-react";
 import Footer from "../../components/Footer";
+import PublicNavbar from "../../components/PublicNavbar";
 
 function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
 }
 
-export default function ProductDetail() {
-    const [quantity, setQuantity] = useState(1);
-    const [activeColor, setActiveColor] = useState("Midnight Black");
-    const [activeTab, setActiveTab] = useState("Detail Produk");
+function getImageUrl(url, fallback) {
+    if (!url) return fallback;
+    if (url.startsWith("http")) return url;
+    return `http://localhost:5000${url}`;
+}
 
-    const product = {
-        name: "Smartwatch Pro Max Series 8 - Midnight Black",
-        price: 2499000,
-        rating: 4.9,
-        sold: "2.1k",
-        isMall: true,
-        colors: [
-            { name: "Midnight Black", image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100&q=80" },
-            { name: "Silver", image: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=100&q=80" }
-        ],
-        images: [
-            "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&q=90",
-            "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400&q=80",
-            "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=400&q=80"
-        ],
-        description: `Smartwatch premium dengan fitur kesehatan lengkap dan baterai tahan lama. Cocok untuk menemani aktivitas sehari-hari maupun olahraga intens.`,
-        features: [
-            "Layar OLED 1.9 inch super terang",
-            "Sensor detak jantung & SpO2 akurat",
-            "Water resistant 5ATM (Bisa untuk berenang)",
-            "Baterai tahan hingga 14 hari pemakaian normal",
-            "Garansi Resmi 1 Tahun Seapedia Official"
-        ],
-        boxContents: "1x Smartwatch, 1x Kabel Charger Magnetic, 1x Buku Panduan",
-        seller: {
-            name: "Seapedia Official",
-            avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80",
-            verified: true,
-            chatResponse: "98% Chat Dibalas"
+const FALLBACK_IMAGES = [
+    "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&q=90",
+    "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400&q=80",
+    "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=400&q=80"
+];
+
+export default function ProductDetail() {
+    const { id } = useParams();
+    const [quantity, setQuantity] = useState(1);
+    const [activeColor, setActiveColor] = useState("Default");
+    const [activeTab, setActiveTab] = useState("Detail Produk");
+    const [product, setProduct] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isAdding, setIsAdding] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const res = await api.get(`/catalog/${id}`);
+                setProduct(res.data.data);
+            } catch (error) {
+                console.error("Gagal memuat detail produk:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchProduct();
+    }, [id]);
+
+    if (isLoading) {
+        return <div className="min-h-screen bg-gray-50 flex items-center justify-center font-['Plus_Jakarta_Sans',sans-serif]">Memuat produk...</div>;
+    }
+
+    const handleAddToCart = async (isBuyNow = false) => {
+        setIsAdding(true);
+        try {
+            await api.post("/cart", {
+                productId: product.id,
+                quantity: quantity
+            });
+            if (!isBuyNow) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Berhasil",
+                    text: "Produk ditambahkan ke keranjang",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+            return true;
+        } catch (err) {
+            if (err.response?.status === 409) {
+                // Different store
+                const confirm = await Swal.fire({
+                    title: "Beda Toko",
+                    text: err.response.data.message,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, kosongkan",
+                    cancelButtonText: "Batal"
+                });
+
+                if (confirm.isConfirmed) {
+                    try {
+                        await api.post("/cart", {
+                            productId: product.id,
+                            quantity: quantity,
+                            replaceStore: true
+                        });
+                        if (!isBuyNow) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Berhasil",
+                                text: "Produk ditambahkan ke keranjang",
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
+                        return true;
+                    } catch (e) {
+                        Swal.fire("Gagal", e.response?.data?.error || "Terjadi kesalahan", "error");
+                        return false;
+                    }
+                }
+                return false;
+            } else if (err.response?.status === 401 || err.response?.status === 403) {
+                Swal.fire("Login Diperlukan", "Silakan login sebagai Buyer untuk menambahkan ke keranjang", "info");
+                navigate('/login');
+                return false;
+            } else {
+                Swal.fire("Gagal", err.response?.data?.error || "Gagal memproses permintaan", "error");
+                return false;
+            }
+        } finally {
+            setIsAdding(false);
         }
     };
 
+    if (!product) {
+        return <div className="min-h-screen bg-gray-50 flex items-center justify-center font-['Plus_Jakarta_Sans',sans-serif]">Produk tidak ditemukan</div>;
+    }
+
+    const displayImages = [
+        getImageUrl(product.images?.[0], FALLBACK_IMAGES[0]),
+        getImageUrl(product.images?.[1], FALLBACK_IMAGES[1]),
+        getImageUrl(product.images?.[2], FALLBACK_IMAGES[2])
+    ];
+    const isMall = product.store?.name?.toLowerCase().includes("official");
+    const sellerInitial = product.store?.name?.charAt(0) || "S";
+    const defaultFeatures = [
+        "100% Produk Original",
+        "Pengiriman Cepat & Aman",
+        "Garansi Toko 7 Hari"
+    ];
+
     return (
         <div className="min-h-screen bg-gray-50 font-['Plus_Jakarta_Sans',sans-serif] flex flex-col">
-            {/* NAVBAR */}
-            <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-                <div className="max-w-[1440px] mx-auto px-4 lg:px-8 h-16 flex items-center gap-4 lg:gap-6">
-                    <Link to="/" className="text-2xl font-black text-[#006B7A] tracking-tight shrink-0">SEAPEDIA</Link>
-                    <nav className="hidden md:flex items-center gap-5 text-sm font-medium text-gray-600 shrink-0">
-                        <button className="hover:text-[#006B7A] transition-colors">Kategori</button>
-                        <button className="hover:text-[#006B7A] transition-colors">Seller Center</button>
-                    </nav>
-                    {/* Search Bar */}
-                    <div className="flex-1 max-w-2xl">
-                        <div className="flex items-center bg-gray-100 rounded-lg px-4 py-2.5 gap-3">
-                            <Search className="w-4 h-4 text-gray-400 shrink-0" />
-                            <input
-                                type="text"
-                                placeholder="Cari produk di Seapedia..."
-                                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-full"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-gray-600 shrink-0">
-                        <Bell className="w-5 h-5 cursor-pointer hover:text-[#006B7A] transition-colors" />
-                        <Link to="/cart" className="hover:text-[#006B7A] transition-colors">
-                            <ShoppingCart className="w-5 h-5 cursor-pointer" />
-                        </Link>
-                        <User className="w-5 h-5 cursor-pointer hover:text-[#006B7A] transition-colors" />
-                    </div>
-                </div>
-            </header>
+            <PublicNavbar />
 
             {/* MAIN CONTENT */}
             <main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-8 w-full flex-1">
@@ -88,16 +149,18 @@ export default function ProductDetail() {
                         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                             <div className="grid grid-cols-3 gap-3">
                                 {/* Big Image */}
-                                <div className="col-span-2 aspect-square rounded-xl overflow-hidden bg-gray-100">
-                                    <img src={product.images[0]} alt="Main" className="w-full h-full object-cover" />
+                                <div className="col-span-2 aspect-[4/5] sm:aspect-square rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                                    <img src={displayImages[0]} alt="Main" className="w-full h-full object-cover mix-blend-multiply" />
                                 </div>
                                 {/* Small Images */}
                                 <div className="col-span-1 flex flex-col gap-3">
-                                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-100">
-                                        <img src={product.images[1]} alt="Thumbnail 1" className="w-full h-full object-cover" />
+                                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 relative group cursor-pointer">
+                                        <img src={displayImages[1]} alt="Detail 1" className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105" />
+                                        <div className="absolute inset-0 bg-black/5"></div>
                                     </div>
-                                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-100">
-                                        <img src={product.images[2]} alt="Thumbnail 2" className="w-full h-full object-cover" />
+                                    <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 relative group cursor-pointer">
+                                        <img src={displayImages[2]} alt="Detail 2" className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105" />
+                                        <div className="absolute inset-0 bg-black/5"></div>
                                     </div>
                                 </div>
                             </div>
@@ -123,16 +186,12 @@ export default function ProductDetail() {
 
                             {activeTab === "Detail Produk" && (
                                 <div className="text-gray-700 text-sm leading-relaxed space-y-4">
-                                    <p>{product.description}</p>
+                                    <p className="whitespace-pre-wrap">{product.description || "Deskripsi tidak tersedia."}</p>
                                     <ul className="list-disc pl-5 space-y-1.5">
-                                        {product.features.map((feature, i) => (
+                                        {defaultFeatures.map((feature, i) => (
                                             <li key={i}>{feature}</li>
                                         ))}
                                     </ul>
-                                    <div className="pt-2">
-                                        <p className="font-bold text-gray-900 mb-1">Isi dalam kotak:</p>
-                                        <p>{product.boxContents}</p>
-                                    </div>
                                 </div>
                             )}
                             {activeTab === "Ulasan (450)" && (
@@ -147,15 +206,15 @@ export default function ProductDetail() {
                         {/* Product Basic Info */}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
                             <div className="flex items-center gap-2 mb-3">
-                                {product.isMall && (
+                                {isMall && (
                                     <span className="bg-blue-100 text-[#006B7A] text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide">
                                         MALL
                                     </span>
                                 )}
                                 <div className="flex items-center gap-1 text-xs text-gray-500">
                                     <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                                    <span className="font-bold text-gray-700">{product.rating}</span>
-                                    <span>• {product.sold} Terjual</span>
+                                    <span className="font-bold text-gray-700">4.8</span>
+                                    <span>• Stok {product.stock}</span>
                                 </div>
                             </div>
                             
@@ -169,25 +228,22 @@ export default function ProductDetail() {
 
                             <div className="mb-6">
                                 <p className="text-sm font-bold text-gray-800 mb-3">
-                                    Pilih Warna: <span className="font-normal text-gray-600">{activeColor}</span>
+                                    Varian Tersedia: <span className="font-normal text-gray-600">{activeColor}</span>
                                 </p>
                                 <div className="flex gap-3">
-                                    {product.colors.map(color => (
-                                        <button
-                                            key={color.name}
-                                            onClick={() => setActiveColor(color.name)}
-                                            className={`relative w-12 h-12 rounded-lg border-2 overflow-hidden transition-all ${
-                                                activeColor === color.name ? "border-[#006B7A]" : "border-gray-200"
-                                            }`}
-                                        >
-                                            <img src={color.image} alt={color.name} className="w-full h-full object-cover" />
-                                            {activeColor === color.name && (
-                                                <div className="absolute -bottom-1 -right-1 bg-[#006B7A] rounded-full w-4 h-4 flex items-center justify-center">
-                                                    <Check className="w-2.5 h-2.5 text-white" />
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
+                                    <button
+                                        onClick={() => setActiveColor("Default")}
+                                        className={`relative w-12 h-12 rounded-lg border-2 overflow-hidden transition-all ${
+                                            activeColor === "Default" ? "border-[#006B7A]" : "border-gray-200"
+                                        }`}
+                                    >
+                                        <img src={displayImages[0]} alt="Default Variant" className="w-full h-full object-cover" />
+                                        {activeColor === "Default" && (
+                                            <div className="absolute -bottom-1 -right-1 bg-[#006B7A] rounded-full w-4 h-4 flex items-center justify-center">
+                                                <Check className="w-2.5 h-2.5 text-white" />
+                                            </div>
+                                        )}
+                                    </button>
                                 </div>
                             </div>
 
@@ -229,10 +285,23 @@ export default function ProductDetail() {
                             </div>
 
                             <div className="flex gap-3">
-                                <button className="flex-1 h-11 border border-[#006B7A] text-[#006B7A] font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#006B7A]/5 transition-colors">
-                                    <ShoppingCart className="w-4 h-4" /> Keranjang
+                                <button 
+                                    onClick={() => handleAddToCart(false)}
+                                    disabled={isAdding || product.stock === 0}
+                                    className="flex-1 h-11 border border-[#006B7A] text-[#006B7A] font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#006B7A]/5 transition-colors disabled:opacity-50"
+                                >
+                                    <ShoppingCart className="w-4 h-4" /> {isAdding ? "Menambahkan..." : "Keranjang"}
                                 </button>
-                                <button className="flex-1 h-11 bg-[#ff8c00] hover:bg-[#e67e00] text-white font-bold rounded-lg transition-colors">
+                                <button 
+                                    disabled={isAdding || product.stock === 0}
+                                    className="flex-1 h-11 bg-[#ff8c00] hover:bg-[#e67e00] text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+                                    onClick={async () => {
+                                        const success = await handleAddToCart(true);
+                                        if (success) {
+                                            navigate('/checkout');
+                                        }
+                                    }}
+                                >
                                     Beli Sekarang
                                 </button>
                             </div>
@@ -241,13 +310,15 @@ export default function ProductDetail() {
                         {/* Seller Info */}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <img src={product.seller.avatar} alt={product.seller.name} className="w-12 h-12 rounded-full object-cover border border-gray-100" />
+                                <div className="w-12 h-12 rounded-full bg-[#006B7A]/10 text-[#006B7A] font-bold text-xl flex items-center justify-center border border-gray-100">
+                                    {sellerInitial}
+                                </div>
                                 <div>
                                     <div className="flex items-center gap-1">
-                                        {product.seller.verified && <Check className="w-3.5 h-3.5 text-white bg-blue-500 rounded-full p-0.5" />}
-                                        <p className="text-sm font-bold text-gray-900">{product.seller.name}</p>
+                                        {isMall && <Check className="w-3.5 h-3.5 text-white bg-[#006B7A] rounded-full p-0.5" />}
+                                        <p className="text-sm font-bold text-gray-900">{product.store?.name || "Toko Bebas"}</p>
                                     </div>
-                                    <p className="text-xs text-gray-500">{product.seller.chatResponse}</p>
+                                    <p className="text-xs text-gray-500">Online</p>
                                 </div>
                             </div>
                             <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:text-[#006B7A] hover:border-[#006B7A] transition-colors">

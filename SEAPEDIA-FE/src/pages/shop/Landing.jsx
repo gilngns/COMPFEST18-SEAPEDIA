@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
+import api from "../../lib/api";
+import PublicNavbar from "../../components/PublicNavbar";
+import { useAuth } from "../../context/AuthContext";
+import Swal from "sweetalert2";
 import {
-    Search, Bell, ShoppingCart, User, Zap, ChevronRight,
+    Bell, ShoppingCart, User, Zap, ChevronRight, ChevronLeft,
     Check, Star, Tag, Truck, Smartphone, Monitor,
     Armchair, Baby, Sparkles, Car, Utensils, Gamepad2, Shirt,
-    Timer, Flame
+    Timer, Flame, Quote, Store, X
 } from "lucide-react";
 
 function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
+}
+
+function getImageUrl(url, fallback) {
+    if (!url) return fallback;
+    if (url.startsWith("http")) return url;
+    return `http://localhost:5000${url}`;
 }
 
 const CATEGORIES = [
@@ -23,94 +33,233 @@ const CATEGORIES = [
     { icon: Utensils, name: "Makanan" },
 ];
 
-const FLASH_SALE_PRODUCTS = [
-    { id: 1, name: "Headphone Nirkabel Premium Pro X", price: 1250000, oldPrice: 2400000, discount: "-50%", sold: 85, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80" },
-    { id: 2, name: "Smartwatch Series 8 Sport Band", price: 3100000, oldPrice: 4000000, discount: "-30%", sold: 45, image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&q=80" },
-    { id: 3, name: "Mug Keramik Minimalis Nordik", price: 45000, oldPrice: 90000, discount: "-60%", sold: 92, image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80" },
-    { id: 4, name: "Set Perawatan Wajah Natural", price: 225000, oldPrice: 300000, discount: "-25%", sold: 38, image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=500&q=80" },
+// Fallback images for products without images from backend
+const FALLBACK_IMAGES = [
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80",
+    "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&q=80",
+    "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80",
+    "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=500&q=80",
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80",
+    "https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?w=500&q=80",
 ];
 
-const RECOMMENDATIONS = [
-    { id: 5, name: "Sepatu Lari Pria Sprint X Warna Merah", price: 850000, rating: 4.8, sold: "1rb+", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80" },
-    { id: 6, name: "Drone Quadcopter Pro 4K Camera", price: 4200000, rating: 4.9, sold: "250", image: "https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?w=500&q=80", official: true },
-    { id: 7, name: "Jam Tangan Pria Kulit Klasik", price: 650000, rating: 4.7, sold: "500+", image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=500&q=80" },
-    { id: 8, name: "Laptop Ultrabook 14\" RAM 16GB SSD 512GB", price: 12500000, rating: 5.0, sold: "100+", image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&q=80" },
-    { id: 9, name: "TWS Earbuds ANC Tahan Air IPX7", price: 450000, rating: 4.8, sold: "2rb+", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&q=80" },
+const HERO_BANNERS = [
+    {
+        id: 1,
+        image: "/banner_bg.png",
+        title: "Diskon Mengalir Hingga 70%",
+        subtitle: "Penawaran terbaik untuk produk pilihanmu, hari ini.",
+        cta: "Belanja Sekarang",
+        color: "bg-gradient-to-r from-[#006B7A]/90 to-transparent",
+        ctaColor: "bg-[#ff8c00] hover:bg-[#e67e00]"
+    },
+    {
+        id: 2,
+        image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&q=90",
+        title: "Gratis Ongkir Sepuasnya!",
+        subtitle: "Nikmati belanja tanpa pusing mikirin biaya kirim ke seluruh Indonesia.",
+        cta: "Klaim Voucher",
+        color: "bg-gradient-to-r from-[#ff8c00]/90 to-transparent",
+        ctaColor: "bg-[#006B7A] hover:bg-[#005a66]"
+    },
+    {
+        id: 3,
+        image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=90",
+        title: "Koleksi Mall Eksklusif",
+        subtitle: "Produk brand ternama dengan jaminan 100% original.",
+        cta: "Eksplor Mall",
+        color: "bg-gradient-to-r from-[#4a00e0]/90 to-transparent",
+        ctaColor: "bg-[#ff2a5f] hover:bg-[#e02655]"
+    }
+];
+
+const TESTIMONIALS = [
+    {
+        name: "Santi",
+        role: "Seller di Jakarta",
+        avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuCS9WciuhX8COJfgBwC0s1pBxBk_pcUY8z-RsWjru-L3dTG5Ke9PWNQVl9h0c4upHT-L07hBEZzEiEqpJIY5nvXi_bFv3RIIoDkwYUCbynwPQFH9A46jSIayeR56IhlwSCetVdRE2BnGmxmIR2B9T6lt_EDmwq2Fd-6NbPPVvUfjB8OHb4wpU3yz4B_iZ2mmjgji25uNGHx617z39nQBpFW4u2_zt1JMiJvmrG6mrqvyXN80Ak7Sa-xcjguRJMHbrKWYijTsyVj_1Ma",
+        text: "Sejak pakai Seapedia, manajemen stok jadi jauh lebih rapi. Fitur chat-nya sangat membantu buat koordinasi sama pembeli. Omzet bulanan saya naik 40%!"
+    },
+    {
+        name: "Budi",
+        role: "Pembeli di Surabaya",
+        avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuApXkfIfarf1EvRDkXplYmE966DoFJ-nXUKUMLE7qdfVFraoi39IsY40VZ09LfShsjGYmZpMMYB-qQOyUJvH_OMcicsJArZowvn6-HPzh7IdJ0BwaMUKzCZ3jU87jKwu-H1vebu_5eO9ONnldLt7nCLNFM55RKKFK8aUHaiVioNvsbmy693QM30hoyeYNxz5BJPFA30-5FvbWf6ombKbyjdY-DlGkc2CarF1qMv1gHMbB2Lxbs_4ZSE40sRDHRxHYAj5GQQVymfbxXr",
+        text: "Gak pernah nyangka belanja gadget semudah ini. Keamanannya terjamin, pengiriman juga selalu on-time. Admin Seapedia sangat responsif!",
+        highlight: true
+    },
+    {
+        name: "Maria",
+        role: "Seller di Bali",
+        avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuB-tkqzZx6R3Y7BIg8YurxaOfNQurNTYG_UZbCWjfi2KufeTOQNX7OiDkSeHI2EaJJ44CiFaqaSvgpuarEmQED4k04Zxm5OXZFhXRFzuhZiKMIMiWXCkpsqzmU8BOwrLicupsNRU9sqAHXusNSQsY9TkYP-DSojH63sfbw-hcQArHQQOXhQh4QyPvAqeDoeRTttZS42IY_GhitkmraST6zTEJBelhBcGo94VI42rJ-NW-X9nzIkPDGejcupJrJTk-JEFyP6RTSdInGU",
+        text: "Antarmuka aplikasinya bersih banget, gak bikin pusing. Upload produk baru tinggal klik-klik aja. Sangat recommended buat yang baru mau mulai jualan."
+    },
+    {
+        name: "Joko",
+        role: "Pembeli di Medan",
+        avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80",
+        text: "Produk yang dijual sangat beragam dan harganya kompetitif. Saya suka karena sering ada flash sale yang beneran murah, bukan abal-abal."
+    },
+    {
+        name: "Siska",
+        role: "Seller di Bandung",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
+        text: "Proses pencairan dana sangat cepat dan tanpa kendala. Sangat membantu perputaran modal usaha kecil saya. Maju terus Seapedia!"
+    },
+    {
+        name: "Andi",
+        role: "Pembeli di Makassar",
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80",
+        text: "Pengalaman belanja terbaik! UI/UX nya mulus banget, checkout cepat, dan kurir rekomendasinya selalu tepat waktu. Top banget pokoknya."
+    }
 ];
 
 export default function Landing() {
-    const navigate = useNavigate();
-    const [searchInput, setSearchInput] = useState("");
+    const { user } = useAuth();
+    const [products, setProducts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [reviews, setReviews] = useState([]);
+    const [reviewForm, setReviewForm] = useState({ name: "", rating: 5, comment: "" });
+    const [submittingReview, setSubmittingReview] = useState(false);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [currentBanner, setCurrentBanner] = useState(0);
 
-    const handleSearch = (e) => {
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentBanner(prev => (prev + 1) % HERO_BANNERS.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await api.get('/catalog');
+                setProducts(res.data.data || []);
+            } catch (error) {
+                console.error("Gagal memuat produk:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        const fetchReviews = async () => {
+            try {
+                const res = await api.get('/reviews');
+                if (res.data?.data) {
+                    const backendReviews = res.data.data.map(r => ({
+                        name: r.name,
+                        role: "Pengguna Seapedia",
+                        avatar: "https://ui-avatars.com/api/?name=" + encodeURIComponent(r.name) + "&background=006B7A&color=fff",
+                        text: r.comment,
+                        rating: r.rating || 5
+                    }));
+                    setReviews(backendReviews);
+                }
+            } catch (error) {
+                console.error("Gagal memuat reviews:", error);
+            }
+        };
+        fetchProducts();
+        fetchReviews();
+    }, []);
+
+    useEffect(() => {
+        if (user && !reviewForm.name) {
+            setReviewForm(prev => ({ ...prev, name: user.username }));
+        }
+    }, [user, reviewForm.name]);
+
+    const handleReviewSubmit = async (e) => {
         e.preventDefault();
-        if (searchInput.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchInput.trim())}`);
+        setSubmittingReview(true);
+        try {
+            const res = await api.post('/reviews', {
+                name: reviewForm.name,
+                rating: Number(reviewForm.rating),
+                comment: reviewForm.comment
+            });
+            await Swal.fire({
+                icon: "success",
+                title: "Berhasil!",
+                text: "Review berhasil dikirim! Terima kasih atas ulasan Anda.",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            setReviewForm({ name: user ? user.username : "", rating: 5, comment: "" });
+            setIsReviewModalOpen(false);
+            const newR = res.data.data;
+            setReviews(prev => [{
+                name: newR.name,
+                role: "Pengguna Seapedia",
+                avatar: "https://ui-avatars.com/api/?name=" + encodeURIComponent(newR.name) + "&background=006B7A&color=fff",
+                text: newR.comment,
+                rating: newR.rating || 5
+            }, ...prev]);
+        } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: error.response?.data?.message || "Gagal mengirim review",
+            });
+        } finally {
+            setSubmittingReview(false);
         }
     };
 
+    // Split products for UI: first 4 for Flash Sale, rest for recommendations
+    const flashSaleProducts = products.slice(0, 4);
+    const recommendedProducts = products.slice(4, 14); // take next 10
+
     return (
         <div className="min-h-screen bg-gray-50/50">
-            {/* NAVBAR */}
-            <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-                <div className="max-w-[1440px] mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
-                    <div className="flex items-center gap-6">
-                        <Link to="/" className="text-2xl font-black text-[#006B7A] tracking-tighter">
-                            SEAPEDIA
-                        </Link>
-                        <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
-                            <Link to="/catalog" className="hover:text-[#006B7A] border-b-2 border-transparent hover:border-[#006B7A] pb-1 transition-all">Kategori</Link>
-                            <Link to="/seller" className="hover:text-[#006B7A] border-b-2 border-transparent hover:border-[#006B7A] pb-1 transition-all">Seller Center</Link>
-                        </div>
-                    </div>
+            <PublicNavbar />
 
-                    <form onSubmit={handleSearch} className="flex-1 max-w-2xl relative hidden sm:block">
-                        <input
-                            type="text"
-                            value={searchInput}
-                            onChange={e => setSearchInput(e.target.value)}
-                            placeholder="Cari produk di Seapedia..."
-                            className="w-full bg-gray-100 border border-transparent focus:border-[#006B7A] focus:bg-white px-4 py-2.5 pl-10 rounded-lg text-sm transition-all outline-none"
-                        />
-                        <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    </form>
-
-                    <div className="flex items-center gap-5 text-gray-500">
-                        <button className="hover:text-[#006B7A] transition-colors relative">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
-                        <Link to="/cart" className="hover:text-[#006B7A] transition-colors relative">
-                            <ShoppingCart className="w-5 h-5" />
-                        </Link>
-                        <div className="w-px h-6 bg-gray-200 hidden sm:block"></div>
-                        <Link to="/login" className="hover:text-[#006B7A] transition-colors hidden sm:block">
-                            <User className="w-5 h-5" />
-                        </Link>
-                    </div>
-                </div>
-            </header>
-
-            {/* BANNERS */}
+            {/* HERO SECTION */}
             <section className="max-w-[1440px] mx-auto px-4 lg:px-8 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[510px]">
                     {/* Main Banner */}
-                    <div className="lg:col-span-2 rounded-2xl overflow-hidden relative p-8 md:p-10 flex flex-col justify-center text-white shadow-sm group cursor-pointer h-full">
-                        <img src="/banner_bg.png" alt="Promo Diskon" className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105" />
+                    <div className="lg:col-span-2 rounded-2xl overflow-hidden relative shadow-[0_12px_30px_rgba(0,0,0,0.1)] group h-full bg-gray-900">
+                        {HERO_BANNERS.map((banner, idx) => (
+                            <div 
+                                key={banner.id}
+                                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentBanner ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                            >
+                                <img src={banner.image} alt={banner.title} className="absolute inset-0 w-full h-full object-cover object-center transform scale-105 group-hover:scale-110 transition-transform duration-[10s] ease-out" />
+                                <div className={`absolute inset-0 ${banner.color} mix-blend-multiply`}></div>
+                                
+                                <div className="absolute inset-0 p-8 md:p-12 flex flex-col justify-center">
+                                    <div className={`relative z-20 w-full max-w-lg transition-all duration-700 delay-100 transform ${idx === currentBanner ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                                        <h1 className="text-4xl md:text-[54px] font-black leading-[1.1] mb-5 tracking-tight drop-shadow-lg text-white">
+                                            {banner.title}
+                                        </h1>
+                                        <p className="text-white/90 text-sm md:text-lg mb-8 leading-relaxed font-medium drop-shadow-md">
+                                            {banner.subtitle}
+                                        </p>
+                                        <button className={`${banner.ctaColor} text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-[0_8px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.3)] hover:-translate-y-1 text-sm md:text-base`}>
+                                            {banner.cta}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
 
-                        <div className="relative z-10 w-full max-w-sm">
-                            <h1 className="text-4xl md:text-5xl font-black leading-[1.1] mb-4 tracking-tight drop-shadow-md">
-                                Diskon Mengalir<br />Hingga 70%
-                            </h1>
-
-                            <p className="text-white/80 text-sm md:text-base mb-7 leading-relaxed">
-                                Penawaran terbaik untuk produk pilihanmu, hari ini.
-                            </p>
-
-                            <button className="bg-[#ff8c00] hover:bg-[#e67e00] text-white font-bold px-8 py-3 rounded-xl transition-colors shadow-md text-sm">
-                                Belanja Sekarang
-                            </button>
+                        {/* Banner Navigation Controls */}
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full">
+                            {HERO_BANNERS.map((_, idx) => (
+                                <button 
+                                    key={idx}
+                                    onClick={() => setCurrentBanner(idx)}
+                                    className={`h-2 rounded-full transition-all duration-300 ${idx === currentBanner ? 'w-8 bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                                />
+                            ))}
                         </div>
+                        
+                        {/* Prev/Next Buttons */}
+                        <button onClick={() => setCurrentBanner(prev => (prev - 1 + HERO_BANNERS.length) % HERO_BANNERS.length)} className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-x-4 group-hover:translate-x-0">
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <button onClick={() => setCurrentBanner(prev => (prev + 1) % HERO_BANNERS.length)} className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
+                            <ChevronRight className="w-6 h-6" />
+                        </button>
                     </div>
 
                     {/* Side Banners */}
@@ -190,30 +339,35 @@ export default function Landing() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                    {FLASH_SALE_PRODUCTS.map((p) => (
+                    {isLoading ? (
+                        <div className="col-span-full text-center py-10 text-gray-500">Memuat Flash Sale...</div>
+                    ) : flashSaleProducts.length > 0 ? (
+                        flashSaleProducts.map((p, i) => (
                         <Link to={`/product/${p.id}`} key={p.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-[#006B7A]/30 hover:-translate-y-0.5 transition-all duration-300 p-3 block group">
                             <div className="relative aspect-square rounded-lg bg-gray-50 mb-3 overflow-hidden">
                                 <span className="absolute top-2 left-2 bg-[#ff8c00] text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm z-10 flex items-center gap-0.5">
-                                    <Flame className="w-3 h-3" strokeWidth={3} /> {p.discount}
+                                    <Flame className="w-3 h-3" strokeWidth={3} /> -50%
                                 </span>
-                                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <img src={getImageUrl(p.images?.[0], FALLBACK_IMAGES[i % FALLBACK_IMAGES.length])} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
                             <h3 className="text-sm text-gray-700 font-medium line-clamp-2 mb-2 group-hover:text-[#006B7A] transition-colors leading-relaxed">{p.name}</h3>
                             
                             <div className="mb-3">
                                 <p className="text-lg font-black text-[#ff8c00] mb-0.5">{rupiah(p.price)}</p>
-                                <p className="text-xs text-gray-400 line-through font-medium">{rupiah(p.oldPrice)}</p>
+                                <p className="text-xs text-gray-400 line-through font-medium">{rupiah(p.price * 2)}</p>
                             </div>
 
                             {/* Progress */}
                             <div>
                                 <div className="relative w-full h-1.5 bg-orange-100 rounded-full overflow-hidden mb-1.5">
-                                    <div className="absolute top-0 left-0 h-full bg-[#ff8c00] rounded-full" style={{ width: `${p.sold}%` }}></div>
+                                    <div className="absolute top-0 left-0 h-full bg-[#ff8c00] rounded-full" style={{ width: `85%` }}></div>
                                 </div>
-                                <p className="text-[10px] font-bold text-gray-500">Tersisa {100 - p.sold}</p>
+                                <p className="text-[10px] font-bold text-gray-500">Tersisa {p.stock}</p>
                             </div>
                         </Link>
-                    ))}
+                    ))) : (
+                        <div className="col-span-full text-center py-10 text-gray-500">Belum ada produk Flash Sale</div>
+                    )}
                 </div>
             </section>
 
@@ -228,28 +382,33 @@ export default function Landing() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-8">
-                    {RECOMMENDATIONS.map((p) => (
+                    {isLoading ? (
+                        <div className="col-span-full text-center py-10 text-gray-500">Memuat Rekomendasi...</div>
+                    ) : recommendedProducts.length > 0 ? (
+                        recommendedProducts.map((p, i) => (
                         <Link to={`/product/${p.id}`} key={p.id} className="bg-white rounded-xl border border-transparent shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] hover:border-[#006B7A]/30 hover:shadow-[0_12px_24px_-8px_rgba(0,107,122,0.15)] hover:-translate-y-1 transition-all duration-300 p-3 cursor-pointer group flex flex-col h-full">
                             <div className="relative aspect-square rounded-lg bg-gray-50 mb-3 overflow-hidden">
-                                {p.official && (
+                                {p.store?.name?.toLowerCase().includes("official") && (
                                     <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-[#006B7A] text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10 flex items-center gap-0.5">
                                         <Check className="w-3 h-3" /> Official
                                     </span>
                                 )}
-                                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <img src={getImageUrl(p.images?.[0], FALLBACK_IMAGES[(i + 4) % FALLBACK_IMAGES.length])} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
                             <h3 className="text-sm text-gray-700 font-medium line-clamp-2 mb-2 group-hover:text-[#006B7A] leading-relaxed">{p.name}</h3>
                             <div className="mt-auto">
                                 <p className="text-[15px] font-bold text-[#006B7A] mb-2">{rupiah(p.price)}</p>
                                 <div className="flex items-center gap-1 text-[11px] text-gray-500">
                                     <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                                    <span className="font-medium text-gray-700">{p.rating}</span>
+                                    <span className="font-medium text-gray-700">4.8</span>
                                     <span className="mx-0.5">|</span>
-                                    <span>Terjual {p.sold}</span>
+                                    <span>Stok {p.stock}</span>
                                 </div>
                             </div>
                         </Link>
-                    ))}
+                    ))) : (
+                        <div className="col-span-full text-center py-10 text-gray-500">Belum ada rekomendasi produk</div>
+                    )}
                 </div>
 
                 <div className="text-center">
@@ -259,8 +418,122 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* APA KATA MEREKA / TESTIMONIALS */}
+            <style>
+                {`
+                    @keyframes marquee {
+                        0% { transform: translateX(0%); }
+                        100% { transform: translateX(calc(-50% - 12px)); }
+                    }
+                `}
+            </style>
+            <section className="max-w-[1440px] mx-auto px-4 lg:px-8 py-12 mb-12 relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-[#006B7A]/5 blur-[80px] rounded-full pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-96 h-96 bg-[#ff8c00]/5 blur-[80px] rounded-full pointer-events-none"></div>
+                
+                <div className="relative z-10">
+                    <div className="text-center mb-12">
+                        <h2 className="text-2xl md:text-3xl font-black text-[#006B7A] mb-3 tracking-tight">Apa Kata Mereka Tentang SEAPEDIA?</h2>
+                        <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">Dipercaya oleh jutaan pengguna di seluruh Indonesia untuk segala kebutuhan belanja dan bisnis online.</p>
+                    </div>
+
+                    <div className="flex overflow-hidden relative w-full pt-4 group min-h-[200px] items-center justify-center">
+                        {reviews.length === 0 ? (
+                            <div className="text-center text-gray-500 font-medium">
+                                Belum ada ulasan untuk aplikasi ini. Jadilah yang pertama memberikan ulasan!
+                            </div>
+                        ) : (
+                            /* Auto-scrolling wrapper */
+                            <div className={`flex ${reviews.length > 2 ? 'animate-[marquee_40s_linear_infinite]' : ''} group-hover:[animation-play-state:paused] whitespace-nowrap gap-6 min-w-max px-4`}>
+                                {[...reviews, ...(reviews.length > 2 ? reviews : [])].map((t, i) => (
+                                    <div key={i} className={`w-[300px] md:w-[350px] shrink-0 whitespace-normal backdrop-blur-md p-6 rounded-2xl shadow-[0_2px_8px_rgba(0,107,122,0.05)] transition-all duration-300 ${t.highlight ? 'bg-[#006B7A]/5 border-2 border-[#006B7A]/20 transform md:-translate-y-2' : 'bg-white/80 border border-gray-100 hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)] hover:border-[#006B7A]/20'}`}>
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className={`w-12 h-12 rounded-full overflow-hidden border-2 ${t.highlight ? 'border-[#006B7A]' : 'border-[#006B7A]/20'}`}>
+                                                <img className="w-full h-full object-cover" src={t.avatar} alt={t.name} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-gray-900 text-base">{t.name}</h4>
+                                                <p className="text-sm text-gray-500 font-medium">{t.role}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1 text-[#ff8c00] mb-3">
+                                            {[...Array(5)].map((_, idx) => (
+                                                <Star key={idx} className={`w-4 h-4 ${idx < t.rating ? 'fill-[#ff8c00] text-[#ff8c00]' : 'fill-gray-200 text-gray-200'}`} />
+                                            ))}
+                                        </div>
+                                        <p className="text-gray-700 italic leading-relaxed text-sm">
+                                            "{t.text}"
+                                        </p>
+                                        {t.highlight && (
+                                            <div className="mt-4 flex justify-end">
+                                                <Quote className="w-8 h-8 text-[#006B7A] opacity-20" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* CTA Buttons */}
+                    <div className="flex flex-col md:flex-row justify-center items-center gap-4 mt-12 mb-2 relative z-10">
+                        <button onClick={() => setIsReviewModalOpen(true)} className="w-full md:w-auto px-8 py-3.5 border-2 border-[#006B7A] text-[#006B7A] hover:bg-[#006B7A]/5 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <Star className="w-5 h-5" />
+                            Beri Ulasan
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             {/* FOOTER */}
             <Footer />
+
+            {/* Review Modal */}
+            {isReviewModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">Bagikan Pengalamanmu</h3>
+                                <p className="text-sm text-gray-500 mt-1">Ulasanmu sangat berarti untuk kami</p>
+                            </div>
+                            <button onClick={() => setIsReviewModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <form onSubmit={handleReviewSubmit} className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap</label>
+                                    <input required type="text" value={reviewForm.name} onChange={e => setReviewForm({...reviewForm, name: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:border-[#006B7A] focus:ring-1 focus:ring-[#006B7A] outline-none transition-all placeholder:text-gray-400" placeholder="Tuliskan nama Anda" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Rating</label>
+                                    <div className="flex gap-2">
+                                        {[1,2,3,4,5].map(star => (
+                                            <button type="button" key={star} onClick={() => setReviewForm({...reviewForm, rating: star})} className="text-3xl focus:outline-none transition-transform hover:scale-110">
+                                                <Star className={`w-8 h-8 ${reviewForm.rating >= star ? 'fill-[#ffb020] text-[#ffb020]' : 'text-gray-300'}`} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Komentar</label>
+                                    <textarea required value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value})} rows="3" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:border-[#006B7A] focus:ring-1 focus:ring-[#006B7A] outline-none transition-all resize-none placeholder:text-gray-400" placeholder="Ceritakan pengalaman Anda..."></textarea>
+                                </div>
+                                <button disabled={submittingReview} type="submit" className="w-full py-3.5 bg-[#006B7A] text-white font-bold rounded-xl hover:bg-[#005a66] transition-colors disabled:opacity-50 mt-2 shadow-sm flex justify-center items-center gap-2">
+                                    {submittingReview ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            Mengirim...
+                                        </>
+                                    ) : "Kirim Ulasan"}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

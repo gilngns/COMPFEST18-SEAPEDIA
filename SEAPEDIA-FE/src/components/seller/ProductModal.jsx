@@ -15,8 +15,8 @@ export default function ProductModal({ product, onClose, onSaved }) {
   });
   const [loading, setLoading] = useState(false);
 
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState("");
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
 
   // kalau edit, isi form dengan data produk
   useEffect(() => {
@@ -28,17 +28,17 @@ export default function ProductModal({ product, onClose, onSaved }) {
         stock: product.stock || "",
         unit: product.unit || "",
       });
-      if (product.imageUrl) {
-        setPreview(`http://localhost:5000${product.imageUrl}`);
+      if (product.images && product.images.length > 0) {
+        setPreviews(product.images.map(img => `http://localhost:5000${img}`));
       }
     }
   }, [product]);
 
   function handleImageChange(e) {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files).slice(0, 3);
+    if (files.length > 0) {
+      setImages(files);
+      setPreviews(files.map(f => URL.createObjectURL(f)));
     }
   }
 
@@ -63,8 +63,10 @@ export default function ProductModal({ product, onClose, onSaved }) {
       formData.append("price", Number(form.price));
       formData.append("stock", Number(form.stock));
       formData.append("unit", form.unit);
-      if (image) {
-        formData.append("image", image);
+      if (images && images.length > 0) {
+        images.forEach(img => {
+          formData.append("images", img);
+        });
       }
 
       const config = { headers: { "Content-Type": "multipart/form-data" } };
@@ -111,26 +113,35 @@ export default function ProductModal({ product, onClose, onSaved }) {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Gambar Produk
             </label>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-lg border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 relative group cursor-pointer hover:bg-gray-100 transition-colors">
-                {preview ? (
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center text-gray-400">
-                    <ImageIcon className="w-5 h-5 mb-0.5" />
-                    <span className="text-[10px] font-medium">Upload</span>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                {[0, 1, 2].map((index) => (
+                  <div key={index} className="w-16 h-16 rounded-lg border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 relative group cursor-pointer hover:bg-gray-100 transition-colors">
+                    {previews[index] ? (
+                      <img src={previews[index]} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center text-gray-400">
+                        <ImageIcon className="w-5 h-5 mb-0.5" />
+                      </div>
+                    )}
+                    {/* The file input covers all 3 boxes implicitly, but we'll attach it to a single label to allow user to upload all 3 at once */}
                   </div>
-                )}
+                ))}
+              </div>
+              <div className="relative inline-block w-max">
+                <button type="button" className="text-sm font-medium text-[#006B7A] bg-blue-50 px-3 py-1.5 rounded-md hover:bg-blue-100 cursor-pointer pointer-events-none">
+                  Pilih maksimal 3 Foto
+                </button>
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handleImageChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </div>
               <div className="text-xs text-gray-500">
-                <p>Format: JPG, PNG, WEBP.</p>
-                <p>Maksimal ukuran 2MB.</p>
+                <p>Format: JPG, PNG, WEBP. Maksimal 2MB per foto.</p>
               </div>
             </div>
           </div>

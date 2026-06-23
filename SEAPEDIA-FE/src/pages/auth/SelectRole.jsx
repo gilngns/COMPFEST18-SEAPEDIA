@@ -48,6 +48,12 @@ export default function SelectRole() {
       setUser({ ...user, activeRole: res.data.activeRole });
       if (res.data.activeRole === "SELLER") {
         navigate("/seller");
+      } else if (res.data.activeRole === "BUYER") {
+        navigate("/buyer");
+      } else if (res.data.activeRole === "DRIVER") {
+        navigate("/driver");
+      } else if (res.data.activeRole === "ADMIN") {
+        navigate("/admin");
       } else {
         navigate("/dashboard");
       }

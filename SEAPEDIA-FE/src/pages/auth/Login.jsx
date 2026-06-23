@@ -30,6 +30,9 @@ export default function Login() {
   if (user) {
     if (!user.activeRole) return <Navigate to="/select-role" replace />;
     if (user.activeRole === "SELLER") return <Navigate to="/seller" replace />;
+    if (user.activeRole === "BUYER") return <Navigate to="/buyer" replace />;
+    if (user.activeRole === "DRIVER") return <Navigate to="/driver" replace />;
+    if (user.activeRole === "ADMIN") return <Navigate to="/admin" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -46,6 +49,12 @@ export default function Login() {
         setSession({ ...user, roles, activeRole });
         if (activeRole === "SELLER") {
           navigate("/seller");
+        } else if (activeRole === "BUYER") {
+          navigate("/buyer");
+        } else if (activeRole === "DRIVER") {
+          navigate("/driver");
+        } else if (activeRole === "ADMIN") {
+          navigate("/admin");
         } else {
           navigate("/dashboard");
         }

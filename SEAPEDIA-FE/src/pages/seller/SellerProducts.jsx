@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../../lib/api";
+import { getImageUrl } from "../../utils/image";
 import SellerLayout from "../../components/seller/SellerLayout";
 import ProductModal from "../../components/seller/ProductModal";
 import { Plus, Pencil, Power, PackageOpen, ChevronLeft, ChevronRight, Search, Trash2 } from "lucide-react";
@@ -158,8 +159,8 @@ export default function SellerProducts() {
                         <td className="py-4 px-5">
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                              {p.imageUrl ? (
-                                <img src={`http://localhost:5000${p.imageUrl}`} alt={p.name} className="w-full h-full object-cover" />
+                              {p.images && p.images.length > 0 ? (
+                                <img src={getImageUrl(p.images[0])} alt={p.name} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
                                   <PackageOpen className="w-6 h-6" />
