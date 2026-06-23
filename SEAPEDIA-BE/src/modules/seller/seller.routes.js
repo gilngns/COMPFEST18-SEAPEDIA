@@ -10,9 +10,9 @@ router.post("/store", ...sellerOnly, upload.single("logo"), controller.upsertSto
 router.get("/store/me", ...sellerOnly, controller.myStore);
 router.get("/store/:id", controller.publicStore);
 
-router.post("/products", ...sellerOnly, upload.single("image"), controller.createProduct);
+router.post("/products", ...sellerOnly, upload.array("images", 3), controller.createProduct);
 router.get("/products", ...sellerOnly, controller.listMyProducts);
-router.put("/products/:id", ...sellerOnly, upload.single("image"), controller.updateProduct);
+router.put("/products/:id", ...sellerOnly, upload.array("images", 3), controller.updateProduct);
 router.delete("/products/:id", ...sellerOnly, controller.deleteProduct);
 
 module.exports = router;

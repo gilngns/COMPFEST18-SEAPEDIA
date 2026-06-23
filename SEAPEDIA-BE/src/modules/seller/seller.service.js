@@ -89,7 +89,7 @@ async function createProduct(userId, body) {
       price: Number(body.price),
       stock: Number(body.stock),
       unit: body.unit || "pcs",
-      imageUrl: body.imageUrl || null,
+      images: body.images || [],
     },
   });
 }
@@ -123,7 +123,7 @@ async function updateProduct(userId, productId, body) {
       stock: body.stock != null ? Number(body.stock) : product.stock,
       unit: body.unit !== undefined ? body.unit : product.unit,
       isActive: body.isActive != null ? body.isActive : product.isActive,
-      imageUrl: body.imageUrl !== undefined ? body.imageUrl : product.imageUrl,
+      images: body.images !== undefined ? body.images : product.images,
     },
   });
 }

@@ -85,7 +85,7 @@ model Product {
   stock       Int         @default(0)
   unit        String      @default("pcs")
   isActive    Boolean     @default(true)
-  imageUrl    String?
+  images      String[]    @default([])
   store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
   cartItems   CartItem[]
   orderItems  OrderItem[]

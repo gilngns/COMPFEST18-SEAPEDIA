@@ -11,6 +11,7 @@ async function listProducts({ search } = {}) {
       name: true,
       price: true,
       stock: true,
+      images: true,
       store: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -27,6 +28,7 @@ async function getProduct(productId) {
       price: true,
       stock: true,
       isActive: true,
+      images: true,
       store: { select: { id: true, name: true, description: true } },
     },
   });

@@ -32,7 +32,9 @@ async function publicStore(req, res, next) {
 async function createProduct(req, res, next) {
   try {
     const data = { ...req.body };
-    if (req.file) data.imageUrl = `/uploads/products/${req.file.filename}`;
+    if (req.files && req.files.length > 0) {
+      data.images = req.files.map(f => `/uploads/products/${f.filename}`);
+    }
     const product = await service.createProduct(req.user.userId, data);
     res.status(201).json({ message: "Produk dibuat", data: product });
   } catch (err) { next(err); }
@@ -46,7 +48,9 @@ async function listMyProducts(req, res, next) {
 async function updateProduct(req, res, next) {
   try {
     const data = { ...req.body };
-    if (req.file) data.imageUrl = `/uploads/products/${req.file.filename}`;
+    if (req.files && req.files.length > 0) {
+      data.images = req.files.map(f => `/uploads/products/${f.filename}`);
+    }
     const product = await service.updateProduct(req.user.userId, req.params.id, data);
     res.json({ message: "Produk diperbarui", data: product });
   } catch (err) { next(err); }
