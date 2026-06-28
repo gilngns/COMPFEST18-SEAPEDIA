@@ -33,7 +33,7 @@ export default function AdminDashboard() {
                 title: "Waktu Dimajukan!",
                 html: `Simulasi hari +${data.dayOffset} berhasil.<br/>Pesanan overdue direfund: <b>${data.refundedCount}</b> pesanan.`
             });
-            // Refresh stats after simulation
+            
             const statsRes = await api.get("/admin/stats");
             setStats(statsRes.data.data);
         } catch (error) {
@@ -70,10 +70,10 @@ export default function AdminDashboard() {
                 icon: Users,
                 iconColor: "text-blue-500"
             }}
-            actionCards={[]} // Kosongkan actionCards agar DashboardOverview hanya menampilkan 2 card utama yang lebih seimbang
+            actionCards={[]} 
         />
 
-        {/* Custom Grid for Additional Stats */}
+        {}
         <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mt-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Metrik Operasional</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

@@ -73,6 +73,22 @@ class AuthUseCase {
     return { token, activeRole: role };
   }
 
+  async addRole({ userId, role }) {
+    if (!VALID_ROLES.includes(role)) {
+      throw { status: 400, message: `Peran tidak valid: ${role}` };
+    }
+    
+    const owned = await authRepository.findUserRole(userId, role);
+    if (owned) {
+      throw { status: 409, message: "Kamu sudah memiliki peran tersebut" };
+    }
+
+    await authRepository.addRoleToUser(userId, role);
+    
+    const token = signToken({ userId, activeRole: role });
+    return { token, activeRole: role };
+  }
+
   async getProfile(userId) {
     const user = await authRepository.getUserProfile(userId);
     if (!user) throw { status: 404, message: "User tidak ditemukan" };

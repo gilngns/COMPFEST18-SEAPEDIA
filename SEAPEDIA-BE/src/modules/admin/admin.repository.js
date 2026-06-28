@@ -96,13 +96,13 @@ class AdminRepository {
 
     for (const order of overdueOrders) {
       await prisma.$transaction(async (tx) => {
-        // 1. Update status
+        
         await tx.order.update({
           where: { id: order.id },
           data: { status: "DIKEMBALIKAN" }
         });
 
-        // 2. Add history
+        
         await tx.orderStatusHistory.create({
           data: {
             orderId: order.id,
@@ -111,7 +111,7 @@ class AdminRepository {
           }
         });
 
-        // 3. Refund to buyer
+        
         let buyerWallet = await tx.wallet.findUnique({ where: { userId: order.buyerId } });
         if (!buyerWallet) {
           buyerWallet = await tx.wallet.create({ data: { userId: order.buyerId, balance: 0 } });
@@ -132,7 +132,7 @@ class AdminRepository {
           }
         });
 
-        // 4. Restore stock
+        
         for (const item of order.items) {
           await tx.product.update({
             where: { id: item.productId },

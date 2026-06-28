@@ -70,7 +70,7 @@ export default function DriverDeliveries() {
         </div>
       ) : (
         <div className="w-full">
-          {/* PESANAN AKTIF */}
+          {}
           {activeDeliveries.length > 0 && (
             <div className="mb-8">
               <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -128,7 +128,7 @@ export default function DriverDeliveries() {
             </div>
           )}
 
-          {/* RIWAYAT SELESAI */}
+          {}
           {completedDeliveries.length > 0 && (
             <div>
               <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-2">

@@ -31,7 +31,7 @@ class OrdersUseCase {
         }
         if (discountAmount > subtotal) discountAmount = subtotal;
       } catch (err) {
-        // Abaikan jika preview, biarkan discount 0, tapi sebenarnya bisa throw error
+        
         throw err;
       }
     }

@@ -43,6 +43,22 @@ async function selectRole(req, res, next) {
   }
 }
 
+async function addRole(req, res, next) {
+  try {
+    const data = await usecase.addRole({ userId: req.user.userId, role: req.body.role });
+
+    res.cookie("token", data.token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+    });
+
+    res.json({ message: `Berhasil menambahkan peran ${data.activeRole}`, activeRole: data.activeRole });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function me(req, res, next) {
   try {
     const profile = await usecase.getProfile(req.user.userId);
@@ -60,4 +76,4 @@ async function logout(req, res, next) {
   res.json({ message: "Logout berhasil" });
 }
 
-module.exports = { register, login, selectRole, me, logout };
+module.exports = { register, login, selectRole, addRole, me, logout };

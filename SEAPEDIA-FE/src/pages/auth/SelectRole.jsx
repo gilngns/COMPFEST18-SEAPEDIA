@@ -3,6 +3,8 @@ import { useAuth } from "../../context/AuthContext";
 import Swal from "sweetalert2";
 import { authService } from "../../services/authService";
 
+const ALL_ROLES = ["BUYER", "SELLER", "DRIVER"];
+
 const ROLE_INFO = {
   BUYER: {
     title: "Buyer",
@@ -42,27 +44,58 @@ export default function SelectRole() {
   }
 
   async function choose(role) {
+    if (!user.roles.includes(role)) {
+      const confirm = await Swal.fire({
+        title: "Tambah Peran?",
+        text: `Anda belum terdaftar sebagai ${ROLE_INFO[role]?.title}. Ingin menambahkannya sekarang?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Ya, Tambahkan!",
+        cancelButtonText: "Batal",
+        confirmButtonColor: "#147287"
+      });
+      if (!confirm.isConfirmed) return;
+      
+      try {
+        const res = await authService.addRole(role);
+        localStorage.setItem("token", res.token);
+        setUser({ ...user, roles: [...user.roles, role], activeRole: res.activeRole });
+        navigateRole(res.activeRole);
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: err.response?.data?.message || err.message || "Gagal menambah peran",
+        });
+      }
+      return;
+    }
+
     try {
       const res = await authService.selectRole(role);
       localStorage.setItem("token", res.token);
       setUser({ ...user, activeRole: res.activeRole });
-      if (res.activeRole === "SELLER") {
-        navigate("/seller");
-      } else if (res.activeRole === "BUYER") {
-        navigate("/buyer");
-      } else if (res.activeRole === "DRIVER") {
-        navigate("/driver");
-      } else if (res.activeRole === "ADMIN") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      navigateRole(res.activeRole);
     } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Gagal",
         text: err.response?.data?.message || err.message || "Gagal memilih peran",
       });
+    }
+  }
+
+  function navigateRole(activeRole) {
+    if (activeRole === "SELLER") {
+      navigate("/seller");
+    } else if (activeRole === "BUYER") {
+      navigate("/buyer");
+    } else if (activeRole === "DRIVER") {
+      navigate("/driver");
+    } else if (activeRole === "ADMIN") {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
     }
   }
 
@@ -88,21 +121,34 @@ export default function SelectRole() {
       </div>
 
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-[900px] w-full px-2 relative z-10">
-        {user.roles.map((role) => {
+        {ALL_ROLES.map((role) => {
           const info = ROLE_INFO[role];
           if (!info) return null;
+          const isOwned = user.roles.includes(role);
           return (
             <button
               key={role}
               onClick={() => choose(role)}
-              className="bg-[#0b1b33]/40 backdrop-blur-xl rounded-3xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.8)] border border-white/10 px-8 py-10 text-center hover:bg-[#0b1b33]/60 hover:border-white/30 hover:-translate-y-2 transition-all duration-300 flex flex-col items-center group cursor-pointer"
+              className={`backdrop-blur-xl rounded-3xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.8)] border px-8 py-10 text-center transition-all duration-300 flex flex-col items-center group cursor-pointer 
+                ${isOwned 
+                  ? "bg-[#0b1b33]/40 border-white/10 hover:bg-[#0b1b33]/60 hover:border-white/30 hover:-translate-y-2" 
+                  : "bg-[#0b1b33]/20 border-white/5 opacity-70 hover:opacity-100 hover:bg-[#0b1b33]/40 hover:-translate-y-1 grayscale hover:grayscale-0"}`}
             >
-              <div className="w-[84px] h-[84px] bg-[#147287]/40 rounded-full flex items-center justify-center mb-6 text-[#38e8ff] group-hover:bg-[#38e8ff] group-hover:text-[#060c17] transition-all duration-300 shadow-[0_0_15px_rgba(56,232,255,0.2)] group-hover:shadow-[0_0_25px_rgba(56,232,255,0.6)]">
+              <div className={`w-[84px] h-[84px] rounded-full flex items-center justify-center mb-6 transition-all duration-300 
+                ${isOwned 
+                  ? "bg-[#147287]/40 text-[#38e8ff] group-hover:bg-[#38e8ff] group-hover:text-[#060c17] shadow-[0_0_15px_rgba(56,232,255,0.2)] group-hover:shadow-[0_0_25px_rgba(56,232,255,0.6)]"
+                  : "bg-gray-700/40 text-gray-400 group-hover:bg-[#147287]/80 group-hover:text-white"}`}>
                 {info.icon}
               </div>
-              <h3 className="font-semibold tracking-wide text-[1.2rem] text-white mb-2 group-hover:text-[#38e8ff] transition-colors">
+              <h3 className={`font-semibold tracking-wide text-[1.2rem] mb-2 transition-colors
+                ${isOwned ? "text-white group-hover:text-[#38e8ff]" : "text-gray-400 group-hover:text-white"}`}>
                 {info.title}
               </h3>
+              {!isOwned && (
+                <span className="text-[11px] font-medium text-[#38e8ff]/80 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  + Add Role
+                </span>
+              )}
             </button>
           );
         })}

@@ -25,6 +25,7 @@ const selectRoleSchema = z.object({
 router.post("/register", validate(registerSchema), controller.register);
 router.post("/login", validate(loginSchema), controller.login);
 router.post("/select-role", authRequired, validate(selectRoleSchema), controller.selectRole);
+router.post("/add-role", authRequired, validate(selectRoleSchema), controller.addRole);
 router.get("/me", authRequired, controller.me);
 router.post("/logout", controller.logout);
 

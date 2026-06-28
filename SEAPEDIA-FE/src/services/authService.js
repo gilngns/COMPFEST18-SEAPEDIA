@@ -13,6 +13,10 @@ export const authService = {
     const res = await api.post("/auth/select-role", { role });
     return res.data;
   },
+  async addRole(role) {
+    const res = await api.post("/auth/add-role", { role });
+    return res.data;
+  },
   async getMe() {
     const res = await api.get("/auth/me");
     return res.data;

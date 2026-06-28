@@ -54,10 +54,10 @@ export default function DriverJobs() {
           {jobs.map(job => (
             <div key={job.id} className="relative bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 hover:border-teal-200 hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col sm:flex-row gap-4 sm:gap-6">
               
-              {/* Dekorasi Glow di Belakang */}
+              {}
               <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl -z-10 group-hover:bg-teal-500/10 transition-colors"></div>
 
-              {/* Rute Visual (Kiri) */}
+              {}
               <div className="hidden sm:flex flex-col items-center justify-between py-1 shrink-0 relative">
                 <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center z-10 border-2 border-white shadow-sm">
                   <Store className="w-3.5 h-3.5 text-orange-600" />
@@ -68,7 +68,7 @@ export default function DriverJobs() {
                 </div>
               </div>
 
-              {/* Detail Info (Tengah) */}
+              {}
               <div className="flex-1 flex flex-col justify-center gap-3">
                 
                 <div className="flex items-center gap-2 mb-1">
@@ -104,7 +104,7 @@ export default function DriverJobs() {
                 
               </div>
 
-              {/* Penghasilan & Aksi (Kanan) */}
+              {}
               <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-gray-100 pt-3 sm:pt-0 sm:pl-5 sm:ml-2 sm:w-40 shrink-0 relative">
                 
                 <div className="text-left sm:text-right mb-0 sm:mb-4">

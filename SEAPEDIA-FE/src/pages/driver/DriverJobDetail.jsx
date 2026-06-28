@@ -68,7 +68,7 @@ export default function DriverJobDetail() {
       <div className="bg-white rounded-2xl p-5 md:p-6 border border-gray-100 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -z-10"></div>
         
-        {/* Header Info */}
+        {}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-gray-100 mb-5">
           <div>
             <span className="bg-gray-900 text-white px-2.5 py-1 rounded-md text-[10px] font-black tracking-widest uppercase shadow-sm">
@@ -84,7 +84,7 @@ export default function DriverJobDetail() {
           </div>
         </div>
 
-        {/* Peta Interaktif */}
+        {}
         <div className="w-full h-64 md:h-80 mb-6 rounded-2xl overflow-hidden shadow-inner">
           <MapRoute 
             startCoords={generateCoordsFromId(job.store?.id)} 
@@ -93,9 +93,9 @@ export default function DriverJobDetail() {
           />
         </div>
 
-        {/* Alamat Info */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-          {/* Titik Jemput */}
+          {}
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
@@ -110,7 +110,7 @@ export default function DriverJobDetail() {
             </div>
           </div>
 
-          {/* Titik Antar */}
+          {}
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
@@ -125,7 +125,7 @@ export default function DriverJobDetail() {
           </div>
         </div>
 
-        {/* Daftar Barang */}
+        {}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
@@ -153,7 +153,7 @@ export default function DriverJobDetail() {
           </div>
         </div>
 
-        {/* Action Button */}
+        {}
         <button 
           onClick={handleTakeJob}
           className="w-full py-3 bg-[#006B7A] text-white font-bold rounded-xl hover:bg-teal-700 transition-all shadow-lg hover:shadow-teal-500/30 flex items-center justify-center gap-2 text-base"

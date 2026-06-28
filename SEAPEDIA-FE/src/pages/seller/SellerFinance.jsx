@@ -12,7 +12,7 @@ import {
   ArrowDownRight
 } from "lucide-react";
 
-// Dummy data removed
+
 
 function formatRupiah(number) {
   return new Intl.NumberFormat('id-ID', {
@@ -54,7 +54,7 @@ export default function SellerFinance() {
       if (txs) {
         setTransactions(txs);
         
-        // Hitung penarikan bulan ini (asumsi withdrawal atau amount negatif)
+        
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
         const w = txs.filter(t => 
@@ -141,7 +141,7 @@ export default function SellerFinance() {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Tombol aksi bisa ditambahkan di sini kelak */}
+              {}
             </div>
           </div>
         </div>

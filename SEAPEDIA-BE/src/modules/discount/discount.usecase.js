@@ -13,7 +13,7 @@ class DiscountUseCase {
 
     const cCode = code.trim().toUpperCase();
 
-    // Check Voucher first
+    
     const voucher = await discountRepository.getVoucherByCode(cCode);
     if (voucher) {
       if (new Date(voucher.expiryDate) < new Date()) {
@@ -25,7 +25,7 @@ class DiscountUseCase {
       return { type: "VOUCHER", data: voucher };
     }
 
-    // Check Promo
+    
     const promo = await discountRepository.getPromoByCode(cCode);
     if (promo) {
       if (new Date(promo.expiryDate) < new Date()) {

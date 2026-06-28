@@ -222,13 +222,13 @@ export default function Landing() {
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
             <div className="bg-[#0B1120] pb-24 relative overflow-hidden">
-                {/* Subtle dark glow effects */}
+                {}
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#006B7A]/10 rounded-full blur-[100px] pointer-events-none"></div>
                 <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[#ff8c00]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
                 <PublicNavbar theme="dark" />
 
-                {/* HERO SECTION */}
+                {}
                 <section className="max-w-[1440px] mx-auto px-4 lg:px-8 pt-8 pb-16 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[540px]">
                         { }
@@ -313,7 +313,7 @@ export default function Landing() {
             </div>
 
             <div className="bg-gray-50 rounded-t-[3rem] -mt-10 relative z-20 pt-10">
-                {/* CATEGORIES */}
+                {}
                 <section className="max-w-[1440px] mx-auto px-4 lg:px-8 py-10">
                     <div className="flex items-center justify-between mb-6">
                         <div>

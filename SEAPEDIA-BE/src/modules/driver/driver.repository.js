@@ -10,7 +10,7 @@ class DriverRepository {
     const completedDeliveries = deliveries.filter(d => d.completedAt).length;
     const totalEarnings = deliveries.filter(d => d.earning).reduce((acc, curr) => acc + Number(curr.earning), 0);
 
-    // Simulasi jarak acak untuk tiap delivery selesai (karena tidak ada GPS real)
+    
     const totalDistance = completedDeliveries * Math.floor(Math.random() * 15 + 5); 
 
     const wallet = await prisma.wallet.findUnique({
@@ -125,7 +125,7 @@ class DriverRepository {
 
       const order = delivery.order;
 
-      // 1. Update order & delivery status
+      
       await tx.delivery.update({
         where: { id: delivery.id },
         data: { completedAt: new Date() }
@@ -144,8 +144,8 @@ class DriverRepository {
         }
       });
 
-      // 2. Transfer funds to Seller
-      // Seller gets (Subtotal - Discount) + PPN
+      
+      
       const sellerAmount = Number(order.subtotal) - Number(order.discount) + Number(order.ppn);
       const store = await tx.store.findUnique({ where: { id: order.storeId } });
       
@@ -169,7 +169,7 @@ class DriverRepository {
         }
       });
 
-      // 3. Transfer delivery fee to Driver
+      
       let driverWallet = await tx.wallet.findUnique({ where: { userId: driverId } });
       if (!driverWallet) {
         driverWallet = await tx.wallet.create({ data: { userId: driverId } });

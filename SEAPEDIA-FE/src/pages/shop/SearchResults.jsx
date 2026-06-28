@@ -71,7 +71,7 @@ export default function SearchResults() {
         <div className="min-h-screen bg-gray-50 font-['Plus_Jakarta_Sans',sans-serif]">
             <PublicNavbar initialSearch={query} />
 
-            {/* BREADCRUMB & HEADER */}<main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-6">
+            {}<main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-6">
                 {}
                 <div className="mb-5">
                     <h1 className="text-2xl font-bold text-gray-900">Menampilkan hasil untuk "{query}"</h1>

@@ -19,12 +19,12 @@ function formatDate(dateString) {
 }
 
 export default function AdminVoucherPromo() {
-    const [activeTab, setActiveTab] = useState("VOUCHER"); // VOUCHER | PROMO
+    const [activeTab, setActiveTab] = useState("VOUCHER"); 
     const [vouchers, setVouchers] = useState([]);
     const [promos, setPromos] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // Form state
+    
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formData, setFormData] = useState({
         code: "",
@@ -60,7 +60,7 @@ export default function AdminVoucherPromo() {
         try {
             const endpoint = activeTab === "VOUCHER" ? "/admin/vouchers" : "/admin/promos";
             
-            // Format payload
+            
             const payload = {
                 ...formData,
                 amount: Number(formData.amount),
@@ -107,7 +107,7 @@ export default function AdminVoucherPromo() {
                 </button>
             </div>
 
-            {/* Tabs */}
+            {}
             <div className="flex gap-2 p-1.5 bg-gray-100 rounded-xl w-fit mb-6">
                 <button 
                     onClick={() => setActiveTab("VOUCHER")}
@@ -129,7 +129,7 @@ export default function AdminVoucherPromo() {
                 </button>
             </div>
 
-            {/* Form Modal */}
+            {}
             {isFormOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl overflow-y-auto max-h-[90vh]">
@@ -216,7 +216,7 @@ export default function AdminVoucherPromo() {
                 </div>
             )}
 
-            {/* List Table */}
+            {}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">

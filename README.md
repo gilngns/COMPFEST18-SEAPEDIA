@@ -26,7 +26,6 @@ npx prisma db push
 Run the seeding scripts to automatically create the necessary test accounts:
 ```bash
 node seedAdmin.js
-node seed.js
 ```
 
 ### 3. Frontend Initialization
@@ -38,7 +37,9 @@ npm run dev
 ```
 
 ### 4. API Documentation
-The API documentation is available as a Postman Collection. Import `SEAPEDIA_Postman_Collection.json` (located in the backend root) into your Postman workspace to see all available endpoints and testing payloads.
+The API documentation is fully integrated using Swagger UI.
+Start the backend server and navigate to:
+**[http://localhost:5000/api-docs](http://localhost:5000/api-docs)**
 
 ## Business Rules Documentation (Level 3)
 
@@ -91,7 +92,7 @@ SEAPEDIA implements robust security measures to protect users and data:
 ## 🧪 E2E Demo Testing Guide
 
 To fully test the SEAPEDIA flows:
-1. **Login as Admin** (`admin@gmail.com` / `admin123`) to view overall platform statistics and test the "Simulasikan Hari Esok" button.
+1. **Login as Admin** (`admin@seapedia.com` / `password123`) to view overall platform statistics and test the "Simulasikan Hari Esok" button.
 2. **Login as Buyer** (`joko@gmail.com` / `password123`). Top-up the wallet using the dummy top-up button. Add items from a single store to the cart, apply a voucher (if available), and checkout. Submit an application review after the order is completed.
-3. **Login as Seller** (`hendri@gmail.com` / `password123`). Navigate to the Seller Dashboard. Create a new product. Check the "Pesanan" tab to accept Joko's order (moving it to "Menunggu Kurir").
-4. **Login as Driver** (`budi@gmail.com` / `password123`). Switch the role to Driver. Open the "Cari Order" tab to take Hendri's shipment. Mark it as delivered. Check the Finance tab to see the 100% earning from the delivery fee.
+3. **Login as Seller** (`hendri@gmail.com` / `123123`). Navigate to the Seller Dashboard. Create a new product. Check the "Pesanan" tab to accept Joko's order (moving it to "Menunggu Kurir").
+4. **Login as Driver** (`budi@gmail.com` / `12345678`). Switch the role to Driver. Open the "Cari Order" tab to take Hendri's shipment. Mark it as delivered. Check the Finance tab to see the 100% earning from the delivery fee.

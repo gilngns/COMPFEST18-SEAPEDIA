@@ -139,7 +139,7 @@ export default function AdminOrders() {
                 </div>
             </div>
 
-            {/* Detail Modal */}
+            {}
             {selectedOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -154,7 +154,7 @@ export default function AdminOrders() {
                         </div>
                         
                         <div className="p-6 overflow-y-auto space-y-6">
-                            {/* Summary Cards */}
+                            {}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status</p>
@@ -174,7 +174,7 @@ export default function AdminOrders() {
                                 </div>
                             </div>
 
-                            {/* Product List */}
+                            {}
                             <div>
                                 <h4 className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">Daftar Produk</h4>
                                 <div className="space-y-3">
@@ -199,7 +199,7 @@ export default function AdminOrders() {
                                 </div>
                             </div>
                             
-                            {/* Financial Summary */}
+                            {}
                             <div className="bg-[#006B7A]/5 rounded-xl p-4 border border-[#006B7A]/10">
                                 <div className="flex justify-between items-center text-sm font-medium text-gray-600 mb-2">
                                     <span>Total Harga ({selectedOrder.items.reduce((acc, i) => acc + i.quantity, 0)} Barang)</span>

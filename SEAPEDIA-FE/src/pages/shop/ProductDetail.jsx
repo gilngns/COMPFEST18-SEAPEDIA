@@ -4,7 +4,7 @@ import api from "../../lib/api";
 import Swal from "sweetalert2";
 import {
     Search, Bell, ShoppingCart, User, Star, Check,
-    Truck, MessageSquare, Minus, Plus
+    Truck, Minus, Plus
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import LoginModal from "../../components/LoginModal";
@@ -364,12 +364,8 @@ export default function ProductDetail() {
                                         {isMall && <Check className="w-3.5 h-3.5 text-white bg-[#006B7A] rounded-full p-0.5" />}
                                         <p className="text-sm font-bold text-gray-900">{product.store?.name || "Toko Bebas"}</p>
                                     </div>
-                                    <p className="text-xs text-gray-500">Online</p>
                                 </div>
                             </div>
-                            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:text-[#006B7A] hover:border-[#006B7A] transition-colors">
-                                <MessageSquare className="w-5 h-5" />
-                            </button>
                         </div>
 
                     </div>

@@ -1,0 +1,357 @@
+openapi: 3.0.0
+info:
+  title: SEAPEDIA API
+  description: Full API Documentation for SEAPEDIA Backend E-Commerce
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+    description: Local Development Server
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+
+paths:
+  # ================= AUTH =================
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                email: { type: string }
+                password: { type: string }
+                roles: 
+                  type: array
+                  items: { type: string, enum: [BUYER, SELLER, DRIVER] }
+      responses:
+        '201':
+          description: User registered successfully
+
+  /auth/login:
+    post:
+      summary: Login to account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login successful, returns HTTP-only cookie
+
+  /auth/select-role:
+    post:
+      summary: Select active role for session
+      tags: [Auth]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { type: string, enum: [BUYER, SELLER, DRIVER, ADMIN] }
+      responses:
+        '200':
+          description: Role selected successfully
+
+  /auth/add-role:
+    post:
+      summary: Add a new role to existing account
+      tags: [Auth]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: { type: string, enum: [BUYER, SELLER, DRIVER] }
+      responses:
+        '200':
+          description: Role added successfully
+
+  /auth/me:
+    get:
+      summary: Get current user profile
+      tags: [Auth]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: User profile data
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      tags: [Auth]
+      responses:
+        '200':
+          description: Logged out successfully
+
+  # ================= CATALOG =================
+  /catalog:
+    get:
+      summary: Get all products for catalog
+      tags: [Catalog]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Search keyword
+        - in: query
+          name: categoryId
+          schema: { type: string }
+        - in: query
+          name: sort
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of products
+
+  /catalog/{id}:
+    get:
+      summary: Get product details by ID
+      tags: [Catalog]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Detailed product information
+
+  # ================= BUYER =================
+  /buyer/address:
+    get:
+      summary: Get all buyer addresses
+      tags: [Buyer]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Array of addresses
+    post:
+      summary: Add new delivery address
+      tags: [Buyer]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                city: { type: string }
+                postalCode: { type: string }
+                detail: { type: string }
+      responses:
+        '201':
+          description: Address created
+
+  /buyer/wallet:
+    get:
+      summary: Get buyer wallet balance
+      tags: [Buyer]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Wallet balance
+
+  /buyer/wallet/topup:
+    post:
+      summary: Dummy endpoint to topup wallet
+      tags: [Buyer]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount: { type: number }
+      responses:
+        '200':
+          description: Wallet topped up
+
+  /cart:
+    get:
+      summary: Get items in cart
+      tags: [Buyer]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Cart items and subtotal
+    post:
+      summary: Add item to cart
+      tags: [Buyer]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId: { type: string }
+                quantity: { type: number }
+      responses:
+        '201':
+          description: Added to cart
+
+  /buyer/checkout:
+    post:
+      summary: Checkout items from a single store
+      tags: [Buyer]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                storeId: { type: string }
+                deliveryAddressId: { type: string }
+                discountId: { type: string }
+      responses:
+        '200':
+          description: Order created successfully
+
+  # ================= SELLER =================
+  /seller/store:
+    get:
+      summary: Get seller store profile
+      tags: [Seller]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Store profile
+    post:
+      summary: Create or update store profile
+      tags: [Seller]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '200':
+          description: Store updated
+
+  /seller/products:
+    get:
+      summary: Get all products owned by seller
+      tags: [Seller]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: List of seller products
+    post:
+      summary: Create a new product
+      tags: [Seller]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+                price: { type: number }
+                stock: { type: number }
+                categoryId: { type: string }
+                image: { type: string, format: binary }
+      responses:
+        '201':
+          description: Product created
+
+  /seller/finance/stats:
+    get:
+      summary: Get seller financial statistics (income, etc)
+      tags: [Seller]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Financial stats
+
+  # ================= DRIVER =================
+  /driver/jobs:
+    get:
+      summary: Find available shipping jobs
+      tags: [Driver]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: List of pending orders ready for pickup
+
+  /driver/jobs/{id}/take:
+    post:
+      summary: Accept a shipping job
+      tags: [Driver]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job taken
+
+  /driver/jobs/{id}/deliver:
+    post:
+      summary: Mark job as delivered (Completes the order)
+      tags: [Driver]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Order delivered and funds transferred
+
+  # ================= ADMIN =================
+  /admin/stats:
+    get:
+      summary: Get platform overall statistics
+      tags: [Admin]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Dashboard stats
+
+  /admin/simulate-day:
+    post:
+      summary: Simulate +1 Day for Overdue SLA Engine
+      tags: [Admin]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200':
+          description: Day simulated, overdue orders auto-canceled

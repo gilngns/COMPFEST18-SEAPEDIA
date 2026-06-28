@@ -35,6 +35,12 @@ class AuthRepository {
     });
   }
 
+  async addRoleToUser(userId, role) {
+    return prisma.userRole.create({
+      data: { userId, role },
+    });
+  }
+
   async getUserProfile(userId) {
     return prisma.user.findUnique({
       where: { id: userId },

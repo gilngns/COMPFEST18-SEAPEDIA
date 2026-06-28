@@ -126,9 +126,9 @@ export default function BuyerOrders() {
       await submitReviews(reviewModalOrder.id, payload);
       Swal.fire("Berhasil", "Ulasan berhasil disimpan!", "success");
       setReviewModalOrder(null);
-      loadOrders(); // Refresh to hide review button if we want, or we can just leave it (but backend will throw 400 if duplicate)
+      loadOrders(); 
     } catch (err) {
-      // Error handled by useOrders
+      
     } finally {
       setSubmittingReview(false);
     }

@@ -65,7 +65,7 @@ export default function PublicNavbar({ initialSearch = "", theme = "light" }) {
             } else if (role === "SELLER") {
                 orders = await getStoreOrders() || [];
             } else {
-                // DRIVER atau role lain belum ada endpoint
+                
                 setNotifications([]);
                 setHasUnread(false);
                 return;
@@ -146,7 +146,7 @@ export default function PublicNavbar({ initialSearch = "", theme = "light" }) {
                 </form>
 
                 <div className={`flex items-center gap-5 ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
-                    {/* Notification Bell */}
+                    {}
                     <div className="relative hidden sm:block" ref={notifRef}>
                         <button
                             onClick={handleBellClick}
@@ -159,10 +159,10 @@ export default function PublicNavbar({ initialSearch = "", theme = "light" }) {
                             )}
                         </button>
 
-                        {/* Dropdown */}
+                        {}
                         {notifOpen && (
                             <div className="absolute right-0 top-10 w-[360px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                                {/* Header */}
+                                {}
                                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                                     <span className="font-black text-gray-900 text-sm">Notifikasi</span>
                                     <button onClick={() => setNotifOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -170,7 +170,7 @@ export default function PublicNavbar({ initialSearch = "", theme = "light" }) {
                                     </button>
                                 </div>
 
-                                {/* Body */}
+                                {}
                                 <div className="max-h-[400px] overflow-y-auto">
                                     {loadingNotif ? (
                                         <div className="py-10 text-center text-gray-400 text-sm">Memuat notifikasi...</div>
@@ -214,7 +214,7 @@ export default function PublicNavbar({ initialSearch = "", theme = "light" }) {
                                     )}
                                 </div>
 
-                                {/* Footer */}
+                                {}
                                 <Link
                                     to={`/${user?.activeRole?.toLowerCase() || 'buyer'}`}
                                     onClick={() => setNotifOpen(false)}
@@ -238,6 +238,9 @@ export default function PublicNavbar({ initialSearch = "", theme = "light" }) {
                             <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-700'}`}>Hai, {user.username}</span>
                             <Link to={`/${user.activeRole?.toLowerCase() || 'login'}`} className="text-sm font-bold bg-[#006B7A] text-white px-4 py-2 rounded-lg hover:bg-[#005a66] transition-colors">
                                 Dashboard
+                            </Link>
+                            <Link to="/select-role" className="text-sm font-bold text-[#006B7A] hover:bg-[#006B7A]/10 px-3 py-2 rounded-lg transition-colors">
+                                Ganti Peran
                             </Link>
                             <button onClick={() => { logout(); navigate('/'); }} className="text-sm font-bold text-red-500 hover:bg-red-500/10 px-3 py-2 rounded-lg transition-colors">
                                 Logout

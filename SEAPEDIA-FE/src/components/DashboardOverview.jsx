@@ -35,9 +35,9 @@ export default function DashboardOverview({
                 </div>
             </div>
 
-            {/* Main Stats Grid */}
+            {}
             <div className={`grid grid-cols-1 gap-6 ${actionCards?.length > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
-                {/* Main Card */}
+                {}
                 <div className="bg-[#006B7A] text-white rounded-xl p-6 flex flex-col justify-between shadow-sm border border-[#005a67]">
                     <div className="flex items-center gap-2 text-sm font-semibold text-white/90 mb-4">
                         <Wallet className="w-5 h-5" />
