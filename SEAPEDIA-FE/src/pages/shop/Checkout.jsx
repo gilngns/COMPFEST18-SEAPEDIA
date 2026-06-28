@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MapPin, Wallet, Truck, FileText, CheckCircle } from "lucide-react";
 import Footer from "../../components/Footer";
 import PublicNavbar from "../../components/PublicNavbar";
 import api from "../../lib/api";
 import Swal from "sweetalert2";
+import { useOrders } from "../../hooks/usecases/useOrders";
+import { useBuyer } from "../../hooks/usecases/useBuyer";
 
 function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
@@ -18,7 +20,13 @@ export default function Checkout() {
     const [deliveryMethod, setDeliveryMethod] = useState("REGULAR");
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+    const [discountInput, setDiscountInput] = useState("");
+    const [appliedDiscount, setAppliedDiscount] = useState("");
+    const [discountError, setDiscountError] = useState("");
     const navigate = useNavigate();
+
+    const { previewCheckout, checkout } = useOrders();
+    const { getAddresses, getWallet } = useBuyer();
 
     const DELIVERY_FEES = {
         INSTANT: 25000,
@@ -26,27 +34,54 @@ export default function Checkout() {
         REGULAR: 10000,
     };
 
+    const loadPreview = useCallback(async (code = "") => {
+        try {
+            const data = await previewCheckout(code);
+            if (data) {
+                setPreview(data);
+                if (code) {
+                    setAppliedDiscount(code);
+                    setDiscountError("");
+                } else {
+                    setAppliedDiscount("");
+                    setDiscountError("");
+                    setDiscountInput("");
+                }
+            }
+        } catch (err) {
+            if (code) {
+                setDiscountError(err.response?.data?.message || "Kode diskon tidak valid");
+                setAppliedDiscount("");
+                setDiscountInput("");
+                const data = await previewCheckout("");
+                if (data) setPreview(data);
+            } else {
+                Swal.fire("Gagal", err.response?.data?.message || err.message, "error");
+                navigate('/cart');
+            }
+        }
+    }, [previewCheckout, navigate]);
+
     useEffect(() => {
         const loadCheckoutData = async () => {
             try {
-                const [previewRes, addrRes, walletRes] = await Promise.all([
-                    api.get("/orders/preview"),
-                    api.get("/buyer/address"),
-                    api.get("/buyer/wallet")
+                const [addrRes, walletRes] = await Promise.all([
+                    getAddresses(),
+                    getWallet()
                 ]);
                 
-                setPreview(previewRes.data.data);
-                const addrs = addrRes.data.data || [];
+                await loadPreview();
+                const addrs = addrRes || [];
                 setAddresses(addrs);
                 
                 const defaultAddr = addrs.find(a => a.isDefault);
                 if (defaultAddr) setSelectedAddress(defaultAddr.id);
                 else if (addrs.length > 0) setSelectedAddress(addrs[0].id);
 
-                setWallet(walletRes.data.data?.balance || 0);
+                setWallet(walletRes?.balance || 0);
             } catch (err) {
                 console.error(err);
-                if (err.response?.status === 400) {
+                if (err?.response?.status === 400 || err?.status === 400) {
                     navigate('/cart');
                 } else {
                     Swal.fire("Error", "Gagal memuat data checkout", "error");
@@ -57,14 +92,17 @@ export default function Checkout() {
         };
 
         loadCheckoutData();
-    }, [navigate]);
+    }, [navigate, loadPreview, getAddresses, getWallet]);
 
     const handleCheckout = async () => {
         if (!selectedAddress) {
             return Swal.fire({ icon: "warning", text: "Silakan pilih alamat pengiriman" });
         }
 
-        const total = preview.subtotal + preview.ppn + DELIVERY_FEES[deliveryMethod];
+        const deliveryFee = DELIVERY_FEES[deliveryMethod];
+        const discountAmount = preview.discount || 0;
+        const total = preview.subtotal - discountAmount + preview.ppn + deliveryFee;
+
         if (Number(wallet) < total) {
             return Swal.fire({ 
                 icon: "error", 
@@ -85,9 +123,10 @@ export default function Checkout() {
         if (confirm.isConfirmed) {
             setProcessing(true);
             try {
-                await api.post("/orders/checkout", {
+                await checkout({
                     addressId: selectedAddress,
-                    deliveryMethod
+                    deliveryMethod,
+                    discountCode: appliedDiscount
                 });
                 await Swal.fire({
                     icon: "success",
@@ -98,7 +137,7 @@ export default function Checkout() {
                 });
                 navigate("/buyer/orders");
             } catch (err) {
-                Swal.fire("Gagal", err.response?.data?.message || "Checkout gagal", "error");
+                Swal.fire("Gagal", err.response?.data?.message || err.message || "Checkout gagal", "error");
                 setProcessing(false);
             }
         }
@@ -114,7 +153,8 @@ export default function Checkout() {
     );
 
     const deliveryFee = DELIVERY_FEES[deliveryMethod];
-    const total = preview.subtotal + preview.ppn + deliveryFee;
+    const discountAmount = preview.discount || 0;
+    const total = preview.subtotal - discountAmount + preview.ppn + deliveryFee;
 
     return (
         <div className="min-h-screen bg-gray-50 font-['Plus_Jakarta_Sans',sans-serif] flex flex-col">
@@ -128,7 +168,7 @@ export default function Checkout() {
                 <div className="flex flex-col lg:flex-row gap-8">
                     <div className="flex-1 space-y-6">
                         
-                        {/* ALAMAT PENGIRIMAN */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                             <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
                                 <MapPin className="w-5 h-5 text-gray-500" />
@@ -163,7 +203,7 @@ export default function Checkout() {
                             </div>
                         </div>
 
-                        {/* RINCIAN PRODUK */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                             <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
                                 <FileText className="w-5 h-5 text-gray-500" />
@@ -184,7 +224,7 @@ export default function Checkout() {
                             </div>
                         </div>
 
-                        {/* METODE PENGIRIMAN */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                             <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
                                 <Truck className="w-5 h-5 text-gray-500" />
@@ -207,12 +247,50 @@ export default function Checkout() {
                             </div>
                         </div>
 
+                        {/* Voucher / Promo Section */}
+                        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-gray-500"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                <h2 className="font-bold text-gray-900">Voucher & Promo</h2>
+                            </div>
+                            <div className="p-5">
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Masukkan kode voucher / promo" 
+                                        className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006B7A]/20 focus:border-[#006B7A] uppercase"
+                                        value={discountInput}
+                                        onChange={(e) => setDiscountInput(e.target.value.toUpperCase())}
+                                        disabled={!!appliedDiscount}
+                                    />
+                                    {appliedDiscount ? (
+                                        <button 
+                                            onClick={() => loadPreview("")} 
+                                            className="px-4 py-2 bg-red-50 text-red-600 font-bold rounded-lg border border-red-100 hover:bg-red-100 transition-colors"
+                                        >
+                                            Hapus
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={() => loadPreview(discountInput)} 
+                                            disabled={!discountInput || loading}
+                                            className="px-4 py-2 bg-[#006B7A] text-white font-bold rounded-lg hover:bg-[#005a66] disabled:opacity-50 transition-colors"
+                                        >
+                                            Pakai
+                                        </button>
+                                    )}
+                                </div>
+                                {discountError && <p className="text-red-500 text-sm mt-2">{discountError}</p>}
+                                {appliedDiscount && <p className="text-emerald-600 text-sm mt-2 font-medium">Diskon {appliedDiscount} berhasil diterapkan!</p>}
+                            </div>
+                        </div>
+
                     </div>
 
-                    {/* SUMMARY PENGIRIMAN & BAYAR */}
+                    {}
                     <div className="w-full lg:w-80 shrink-0 space-y-6">
                         
-                        {/* WALLET */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-10 h-10 rounded-full bg-[#006B7A]/10 flex items-center justify-center text-[#006B7A]">
@@ -230,7 +308,7 @@ export default function Checkout() {
                             )}
                         </div>
 
-                        {/* RINGKASAN BELANJA */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sticky top-24">
                             <h2 className="font-bold text-gray-900 mb-4">Ringkasan Pembayaran</h2>
                             
@@ -239,6 +317,12 @@ export default function Checkout() {
                                     <span>Subtotal Produk</span>
                                     <span>{rupiah(preview.subtotal)}</span>
                                 </div>
+                                {discountAmount > 0 && (
+                                    <div className="flex justify-between items-center text-red-500 font-medium">
+                                        <span>Diskon</span>
+                                        <span>-{rupiah(discountAmount)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center text-gray-600">
                                     <span>Biaya Pengiriman</span>
                                     <span>{rupiah(deliveryFee)}</span>

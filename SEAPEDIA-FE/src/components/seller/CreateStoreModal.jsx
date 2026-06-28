@@ -2,10 +2,13 @@ import { useState } from "react";
 import api from "../../lib/api";
 import { Store } from "lucide-react";
 import Swal from "sweetalert2";
+import { useSeller } from "../../hooks/usecases/useSeller";
 
 export default function CreateStoreModal({ onCreated }) {
   const [form, setForm] = useState({ name: "", description: "" });
   const [loading, setLoading] = useState(false);
+
+  const { upsertStore } = useSeller();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -15,7 +18,7 @@ export default function CreateStoreModal({ onCreated }) {
 
     setLoading(true);
     try {
-      const res = await api.post("/seller/store", form);
+      const res = await upsertStore(form);
       Swal.fire({
         icon: "success",
         title: "Toko Dibuat!",
@@ -23,12 +26,12 @@ export default function CreateStoreModal({ onCreated }) {
         timer: 1500,
         showConfirmButton: false,
       });
-      onCreated(res.data.data); // kasih tau parent toko udah jadi
+      onCreated(res.data); 
     } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Gagal",
-        text: err.response?.data?.error || "Gagal membuat toko",
+        text: err.response?.data?.message || err.message || "Gagal membuat toko",
       });
     } finally {
       setLoading(false);
@@ -36,10 +39,10 @@ export default function CreateStoreModal({ onCreated }) {
   }
 
   return (
-    // overlay - gak bisa diklik tutup (wajib bikin toko)
+    
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
-        {/* header */}
+        {}
         <div className="text-center mb-5">
           <div className="w-14 h-14 mx-auto rounded-full bg-seapedia-light flex items-center justify-center mb-3">
             <Store className="w-7 h-7 text-seapedia" />
@@ -50,7 +53,7 @@ export default function CreateStoreModal({ onCreated }) {
           </p>
         </div>
 
-        {/* form */}
+        {}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">

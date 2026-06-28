@@ -7,7 +7,11 @@ import {
     Truck, MessageSquare, Minus, Plus
 } from "lucide-react";
 import Footer from "../../components/Footer";
+import LoginModal from "../../components/LoginModal";
 import PublicNavbar from "../../components/PublicNavbar";
+import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../hooks/usecases/useCart";
+import { useCatalog } from "../../hooks/usecases/useCatalog";
 
 function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
@@ -33,13 +37,17 @@ export default function ProductDetail() {
     const [product, setProduct] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const navigate = useNavigate();
+    const { addToCart } = useCart();
+    const { getProductDetail } = useCatalog();
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const res = await api.get(`/catalog/${id}`);
-                setProduct(res.data.data);
+                const data = await getProductDetail(id);
+                setProduct(data);
             } catch (error) {
                 console.error("Gagal memuat detail produk:", error);
             } finally {
@@ -47,7 +55,7 @@ export default function ProductDetail() {
             }
         };
         fetchProduct();
-    }, [id]);
+    }, [id, getProductDetail]);
 
     if (isLoading) {
         return <div className="min-h-screen bg-gray-50 flex items-center justify-center font-['Plus_Jakarta_Sans',sans-serif]">Memuat produk...</div>;
@@ -56,10 +64,11 @@ export default function ProductDetail() {
     const handleAddToCart = async (isBuyNow = false) => {
         setIsAdding(true);
         try {
-            await api.post("/cart", {
-                productId: product.id,
-                quantity: quantity
-            });
+            const result = await addToCart(product.id, quantity);
+            
+            if (!result.success) {
+                throw { response: { status: result.code === "DIFFERENT_STORE" ? 409 : 400, data: { message: result.error, error: result.error } } };
+            }
             if (!isBuyNow) {
                 Swal.fire({
                     icon: "success",
@@ -72,7 +81,7 @@ export default function ProductDetail() {
             return true;
         } catch (err) {
             if (err.response?.status === 409) {
-                // Different store
+                
                 const confirm = await Swal.fire({
                     title: "Beda Toko",
                     text: err.response.data.message,
@@ -84,11 +93,10 @@ export default function ProductDetail() {
 
                 if (confirm.isConfirmed) {
                     try {
-                        await api.post("/cart", {
-                            productId: product.id,
-                            quantity: quantity,
-                            replaceStore: true
-                        });
+                        const replaceResult = await addToCart(product.id, quantity, true);
+                        if (!replaceResult.success) {
+                            throw new Error(replaceResult.error);
+                        }
                         if (!isBuyNow) {
                             Swal.fire({
                                 icon: "success",
@@ -105,9 +113,16 @@ export default function ProductDetail() {
                     }
                 }
                 return false;
-            } else if (err.response?.status === 401 || err.response?.status === 403) {
-                Swal.fire("Login Diperlukan", "Silakan login sebagai Buyer untuk menambahkan ke keranjang", "info");
-                navigate('/login');
+            } else if (err.response?.status === 401) {
+                setShowLoginModal(true);
+                return false;
+            } else if (err.response?.status === 403) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Akses Ditolak",
+                    text: "Hanya role Pembeli (BUYER) yang bisa menggunakan fitur belanja. Silakan login kembali sebagai Pembeli.",
+                    confirmButtonColor: "#006B7A"
+                });
                 return false;
             } else {
                 Swal.fire("Gagal", err.response?.data?.error || "Gagal memproses permintaan", "error");
@@ -137,22 +152,23 @@ export default function ProductDetail() {
 
     return (
         <div className="min-h-screen bg-gray-50 font-['Plus_Jakarta_Sans',sans-serif] flex flex-col">
+            <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
             <PublicNavbar />
 
-            {/* MAIN CONTENT */}
+            {}
             <main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-8 w-full flex-1">
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
                     
-                    {/* LEFT COLUMN: Images & Description */}
+                    {}
                     <div className="w-full lg:w-[65%] space-y-6">
-                        {/* Image Grid */}
+                        {}
                         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                             <div className="grid grid-cols-3 gap-3">
-                                {/* Big Image */}
+                                {}
                                 <div className="col-span-2 aspect-[4/5] sm:aspect-square rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
                                     <img src={displayImages[0]} alt="Main" className="w-full h-full object-cover mix-blend-multiply" />
                                 </div>
-                                {/* Small Images */}
+                                {}
                                 <div className="col-span-1 flex flex-col gap-3">
                                     <div className="aspect-square rounded-xl overflow-hidden bg-gray-50 relative group cursor-pointer">
                                         <img src={displayImages[1]} alt="Detail 1" className="w-full h-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105" />
@@ -166,10 +182,10 @@ export default function ProductDetail() {
                             </div>
                         </div>
 
-                        {/* Tabs & Details */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
                             <div className="flex gap-8 border-b border-gray-200 mb-6">
-                                {["Detail Produk", "Ulasan (450)"].map(tab => (
+                                {["Detail Produk", `Ulasan (${product.reviews?.length || 0})`].map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
@@ -194,16 +210,40 @@ export default function ProductDetail() {
                                     </ul>
                                 </div>
                             )}
-                            {activeTab === "Ulasan (450)" && (
-                                <div className="text-gray-500 text-sm py-4">Ulasan produk akan tampil di sini.</div>
+                            {activeTab.startsWith("Ulasan") && (
+                                <div className="text-gray-700 text-sm py-4 space-y-4">
+                                    {(!product.reviews || product.reviews.length === 0) ? (
+                                        <p className="text-gray-500 text-center py-8">Belum ada ulasan untuk produk ini.</p>
+                                    ) : (
+                                        product.reviews.map(review => (
+                                            <div key={review.id} className="border-b border-gray-100 pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600 text-xs uppercase">
+                                                        {review.buyer?.username?.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 text-xs">{review.buyer?.username}</p>
+                                                        <p className="text-[10px] text-gray-500">{new Date(review.createdAt).toLocaleDateString('id-ID')}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-1 mb-2">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star key={star} className={`w-3.5 h-3.5 ${review.rating >= star ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                                                    ))}
+                                                </div>
+                                                {review.comment && <p className="text-gray-600 text-xs leading-relaxed">{review.comment}</p>}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN: Product Info & Actions */}
+                    {}
                     <div className="w-full lg:w-[35%] space-y-6">
                         
-                        {/* Product Basic Info */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
                             <div className="flex items-center gap-2 mb-3">
                                 {isMall && (
@@ -213,7 +253,12 @@ export default function ProductDetail() {
                                 )}
                                 <div className="flex items-center gap-1 text-xs text-gray-500">
                                     <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                                    <span className="font-bold text-gray-700">4.8</span>
+                                    <span className="font-bold text-gray-700">{
+                                        product.reviews?.length > 0 
+                                        ? (product.reviews.reduce((a, c) => a + c.rating, 0) / product.reviews.length).toFixed(1)
+                                        : "0.0"
+                                    }</span>
+                                    <span>• Terjual {product.reviews?.length || 0}</span>
                                     <span>• Stok {product.stock}</span>
                                 </div>
                             </div>
@@ -247,7 +292,7 @@ export default function ProductDetail() {
                                 </div>
                             </div>
 
-                            {/* Delivery Info */}
+                            {}
                             <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-100 flex gap-3 items-start">
                                 <Truck className="w-5 h-5 text-[#006B7A] shrink-0 mt-0.5" />
                                 <div className="flex-1">
@@ -260,7 +305,7 @@ export default function ProductDetail() {
                                 </div>
                             </div>
 
-                            {/* Actions */}
+                            {}
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="flex items-center border border-gray-300 rounded-lg h-11 px-2 shrink-0">
                                     <button 
@@ -283,31 +328,32 @@ export default function ProductDetail() {
                                     </button>
                                 </div>
                             </div>
-
-                            <div className="flex gap-3">
-                                <button 
-                                    onClick={() => handleAddToCart(false)}
-                                    disabled={isAdding || product.stock === 0}
-                                    className="flex-1 h-11 border border-[#006B7A] text-[#006B7A] font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#006B7A]/5 transition-colors disabled:opacity-50"
-                                >
-                                    <ShoppingCart className="w-4 h-4" /> {isAdding ? "Menambahkan..." : "Keranjang"}
-                                </button>
-                                <button 
-                                    disabled={isAdding || product.stock === 0}
-                                    className="flex-1 h-11 bg-[#ff8c00] hover:bg-[#e67e00] text-white font-bold rounded-lg transition-colors disabled:opacity-50"
-                                    onClick={async () => {
-                                        const success = await handleAddToCart(true);
-                                        if (success) {
-                                            navigate('/checkout');
-                                        }
-                                    }}
-                                >
-                                    Beli Sekarang
-                                </button>
-                            </div>
+                            {(!user || user.activeRole === "BUYER") && (
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => handleAddToCart(false)}
+                                        disabled={isAdding || product.stock === 0}
+                                        className="flex-1 h-11 border border-[#006B7A] text-[#006B7A] font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#006B7A]/5 transition-colors disabled:opacity-50"
+                                    >
+                                        <ShoppingCart className="w-4 h-4" /> {isAdding ? "Menambahkan..." : "Keranjang"}
+                                    </button>
+                                    <button 
+                                        disabled={isAdding || product.stock === 0}
+                                        className="flex-1 h-11 bg-[#ff8c00] hover:bg-[#e67e00] text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+                                        onClick={async () => {
+                                            const success = await handleAddToCart(true);
+                                            if (success) {
+                                                navigate('/checkout');
+                                            }
+                                        }}
+                                    >
+                                        Beli Sekarang
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Seller Info */}
+                        {}
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-[#006B7A]/10 text-[#006B7A] font-bold text-xl flex items-center justify-center border border-gray-100">

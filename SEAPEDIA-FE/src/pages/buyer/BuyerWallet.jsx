@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../../lib/api";
 import { Wallet, ArrowDownCircle, ArrowUpCircle, History, Plus } from "lucide-react";
 import Swal from "sweetalert2";
+import { useBuyer } from "../../hooks/usecases/useBuyer";
 
 function rupiah(n) {
   return "Rp " + Number(n || 0).toLocaleString("id-ID");
@@ -31,25 +32,29 @@ export default function BuyerWallet() {
   const [loading, setLoading] = useState(true);
   const [topUpAmount, setTopUpAmount] = useState("");
   const [isToppingUp, setIsToppingUp] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
 
-  const loadWallet = async () => {
+  const { getWallet, getWalletTransactions, topUpWallet } = useBuyer();
+
+  const loadWallet = useCallback(async () => {
     try {
-      const [walletRes, txRes] = await Promise.all([
-        api.get("/buyer/wallet"),
-        api.get("/buyer/wallet/transactions")
+      const [walletData, txData] = await Promise.all([
+        getWallet(),
+        getWalletTransactions()
       ]);
-      setBalance(walletRes.data.data?.balance || 0);
-      setTransactions(txRes.data.data || []);
+      setBalance(walletData?.balance || 0);
+      setTransactions(txData || []);
     } catch (err) {
       console.error("Gagal memuat wallet", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [getWallet, getWalletTransactions]);
 
   useEffect(() => {
     loadWallet();
-  }, []);
+  }, [loadWallet]);
 
   const handleTopUp = async (e) => {
     e.preventDefault();
@@ -59,7 +64,7 @@ export default function BuyerWallet() {
     
     setIsToppingUp(true);
     try {
-      await api.post("/buyer/wallet/topup", { amount: Number(topUpAmount) });
+      await topUpWallet(Number(topUpAmount));
       Swal.fire({
         icon: "success",
         title: "Top Up Berhasil",
@@ -69,44 +74,61 @@ export default function BuyerWallet() {
       });
       setTopUpAmount("");
       loadWallet();
+      setCurrentPage(1); // go back to first page to see the top up
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.error || "Top up gagal" });
+      Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.message || err.message || "Top up gagal" });
     } finally {
       setIsToppingUp(false);
     }
   };
 
+  
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentTransactions = transactions.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
   if (loading) {
-    return <div className="text-gray-500 font-medium">Memuat data wallet...</div>;
+    return (
+      <div className="text-center py-20 flex flex-col items-center">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-[#006B7A] rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 font-medium">Memuat data wallet...</p>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Dompet Digital</h2>
+    <div className="min-h-full pb-10">
+      <h2 className="text-3xl font-black text-gray-900 mb-6 tracking-tight">Dompet Digital</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Balance Card */}
-        <div className="bg-[#006B7A] text-white rounded-2xl p-6 shadow-sm relative overflow-hidden md:col-span-1 flex flex-col justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+        {}
+        <div className="bg-[#006B7A] text-white rounded-2xl p-5 shadow-sm relative overflow-hidden md:col-span-1 flex flex-col justify-between">
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-2 text-white/80 font-medium mb-1">
               <Wallet className="w-5 h-5" />
               <span>Saldo Tersedia</span>
             </div>
-            <h3 className="text-3xl font-black mb-4">{rupiah(balance)}</h3>
+            <h3 className="text-3xl font-black mb-2">{rupiah(balance)}</h3>
           </div>
-          <div className="relative z-10 text-sm text-white/80">
-            Gunakan saldo ini untuk checkout pesanan
+          <div className="relative z-10 text-sm text-white font-bold bg-white/20 p-2 rounded-lg mt-2">
+            Total Pengeluaran: {rupiah(transactions.filter(t => t.type === 'PAYMENT').reduce((sum, t) => sum + Number(t.amount), 0))}
           </div>
         </div>
 
-        {/* Top Up Form */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm md:col-span-2 flex flex-col justify-center">
-          <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+        {}
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm md:col-span-2 flex flex-col justify-center">
+          <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
             <Plus className="w-5 h-5 text-[#006B7A]" />
-            Top Up Saldo (Dummy)
+            Top Up Saldo
           </h3>
-          <p className="text-sm text-gray-500 mb-4">Masukkan nominal untuk mensimulasikan top-up saldo wallet.</p>
+          <p className="text-xs text-gray-500 mb-3">Masukkan nominal untuk mensimulasikan top-up saldo wallet.</p>
           
           <form onSubmit={handleTopUp} className="flex gap-3">
             <div className="relative flex-1">
@@ -118,14 +140,14 @@ export default function BuyerWallet() {
                 placeholder="0"
                 min="10000"
                 step="10000"
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006B7A]/20 focus:border-[#006B7A] transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006B7A]/20 focus:border-[#006B7A] transition-colors text-sm font-semibold"
                 required
               />
             </div>
             <button 
               type="submit" 
               disabled={isToppingUp}
-              className="px-6 py-3 bg-[#ff8c00] text-white font-bold rounded-xl hover:bg-[#e67e00] transition-colors disabled:opacity-50 whitespace-nowrap"
+              className="px-5 py-2.5 bg-gradient-to-r from-[#ff8c00] to-orange-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-orange-500/30 transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap text-sm"
             >
               {isToppingUp ? "Proses..." : "Top Up"}
             </button>
@@ -137,7 +159,7 @@ export default function BuyerWallet() {
                 key={amt} 
                 type="button"
                 onClick={() => setTopUpAmount(amt.toString())}
-                className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                className="px-3 py-1.5 text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg text-gray-600 hover:bg-teal-50 hover:text-[#006B7A] hover:border-teal-200 transition-all"
               >
                 {rupiah(amt)}
               </button>
@@ -146,11 +168,13 @@ export default function BuyerWallet() {
         </div>
       </div>
 
-      {/* Transactions History */}
+      {}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-100 flex items-center gap-2">
-          <History className="w-5 h-5 text-gray-500" />
-          <h3 className="font-bold text-gray-900">Riwayat Transaksi</h3>
+        <div className="p-4 border-b border-gray-100 flex items-center gap-2 bg-gradient-to-r from-gray-50 to-white">
+          <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center">
+            <History className="w-4 h-4 text-[#006B7A]" />
+          </div>
+          <h3 className="font-bold text-gray-900 text-sm">Riwayat Transaksi</h3>
         </div>
         
         {transactions.length === 0 ? (
@@ -159,10 +183,10 @@ export default function BuyerWallet() {
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {transactions.map(tx => (
-              <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            {currentTransactions.map(tx => (
+              <div key={tx.id} className="py-2.5 px-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors group">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${
                     tx.type === 'TOPUP' || tx.type === 'REFUND' || tx.type === 'EARNING' 
                     ? 'bg-green-100 text-green-600' 
                     : 'bg-red-100 text-red-600'
@@ -173,11 +197,11 @@ export default function BuyerWallet() {
                     }
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{formatDescription(tx.description) || tx.type}</p>
-                    <p className="text-xs text-gray-500">{formatDate(tx.createdAt)}</p>
+                    <p className="font-semibold text-gray-900 text-sm group-hover:text-[#006B7A] transition-colors">{formatDescription(tx.description) || tx.type}</p>
+                    <p className="text-[11px] text-gray-500">{formatDate(tx.createdAt)}</p>
                   </div>
                 </div>
-                <div className={`font-bold ${
+                <div className={`font-black text-sm ${
                   tx.type === 'TOPUP' || tx.type === 'REFUND' || tx.type === 'EARNING' 
                   ? 'text-green-600' 
                   : 'text-red-600'
@@ -189,6 +213,43 @@ export default function BuyerWallet() {
           </div>
         )}
       </div>
+
+      {}
+      {!loading && totalPages > 0 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-[#006B7A] hover:border-teal-200 disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-gray-200 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            Kembali
+          </button>
+          
+          <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${
+                  currentPage === page 
+                    ? "bg-gradient-to-br from-[#006B7A] to-teal-700 text-white shadow-md transform scale-105" 
+                    : "text-gray-500 hover:bg-gray-100 hover:text-[#006B7A]"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-[#006B7A] hover:border-teal-200 disabled:opacity-40 disabled:hover:bg-white disabled:hover:border-gray-200 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            Lanjut
+          </button>
+        </div>
+      )}
     </div>
   );
 }

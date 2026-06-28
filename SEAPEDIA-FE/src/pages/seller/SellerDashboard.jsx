@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../lib/api";
 import SellerLayout from "../../components/seller/SellerLayout";
+import { useSeller } from "../../hooks/usecases/useSeller";
+import { useOrders } from "../../hooks/usecases/useOrders";
 import CreateStoreModal from "../../components/seller/CreateStoreModal";
 import DashboardOverview from "../../components/DashboardOverview";
 import {
@@ -16,31 +18,43 @@ export default function SellerDashboard() {
     const [productCount, setProductCount] = useState(0);
     const [orderCount, setOrderCount] = useState(0);
     const [balance, setBalance] = useState(0);
+    const [todayIncome, setTodayIncome] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    async function loadData() {
-        try {
-            const storeRes = await api.get("/seller/store/me");
-            setStore(storeRes.data.data);
-            if (storeRes.data.data) {
-                const prodRes = await api.get("/seller/products");
-                const products = prodRes.data.data || [];
-                setProductCount(products.filter((p) => p.isActive).length);
+    const { getMyStore, listMyProducts, getWallet, getWalletTransactions } = useSeller();
+    const { getStoreOrders } = useOrders();
 
-                const ordRes = await api.get("/orders/store");
-                const orders = ordRes.data.data || [];
-                setOrderCount(orders.filter(o => o.status === "SEDANG_DIKEMAS").length);
+    const loadData = useCallback(async () => {
+        try {
+            const storeData = await getMyStore();
+            setStore(storeData);
+            if (storeData) {
+                const products = await listMyProducts();
+                setProductCount((products || []).filter((p) => p.isActive).length);
+
+                const orders = await getStoreOrders();
+                setOrderCount((orders || []).filter(o => o.status === "SEDANG_DIKEMAS").length);
+
+                const wallet = await getWallet();
+                if (wallet) setBalance(Number(wallet.balance) || 0);
+
+                const txs = await getWalletTransactions();
+                if (txs) {
+                    const today = new Date().toDateString();
+                    const income = txs.filter(t => t.amount > 0 && new Date(t.createdAt).toDateString() === today).reduce((sum, t) => sum + Number(t.amount), 0);
+                    setTodayIncome(income);
+                }
             }
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
-    }
+    }, [getMyStore, listMyProducts, getStoreOrders]);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [loadData]);
 
     if (loading) {
         return (
@@ -68,16 +82,12 @@ export default function SellerDashboard() {
                     title: "Total Saldo",
                     value: balance,
                     subValueLabel: "Siap ditarik:",
-                    subValue: `Rp ${Number(balance).toLocaleString("id-ID")}`,
-                    actionText: "Tarik Dana",
-                    actionPath: "/seller/finance"
+                    subValue: `Rp ${Number(balance).toLocaleString("id-ID")}`
                 }}
                 secondaryCard={{
                     title: "Pendapatan Hari Ini",
-                    value: 0,
+                    value: todayIncome,
                     isCurrency: true,
-                    subtext: "vs kemarin",
-                    trend: "↑ 0%",
                     icon: TrendingUp,
                     iconColor: "text-orange-500"
                 }}

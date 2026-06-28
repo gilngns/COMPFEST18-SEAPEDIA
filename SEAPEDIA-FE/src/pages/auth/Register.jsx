@@ -3,10 +3,11 @@ import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import api from "../../lib/api";
+import { authService } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import { Button, Input } from "../../components/ui";
 import Swal from "sweetalert2";
+import { ArrowRight, UserPlus, Lock, Mail, User, ShieldCheck } from "lucide-react";
 
 const ROLES = [
   { value: "BUYER", label: "Buyer" },
@@ -53,13 +54,13 @@ export default function Register() {
   async function onSubmit(data) {
     setLoading(true);
     try {
-      await api.post("/auth/register", {
+      await authService.register({
         username: data.username,
         email: data.email,
         password: data.password,
         roles: data.roles,
       });
-      // success -> to login
+      
       await Swal.fire({
         icon: "success",
         title: "Pendaftaran Berhasil!",
@@ -76,7 +77,7 @@ export default function Register() {
       Swal.fire({
         icon: "error",
         title: "Gagal",
-        text: errorMessage,
+        text: err.response?.data?.message || "Terjadi kesalahan",
       });
     } finally {
       setLoading(false);
@@ -88,18 +89,18 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative font-sans">
-      {/* Gambar Background Penuh */}
+      {}
       <div className="absolute inset-0 bg-[#060c17]">
         <img 
           src="/loginbg.jpg" 
           alt="Register Background" 
           className="absolute inset-0 w-full h-full object-cover opacity-50"
         />
-        {/* Overlay gradient untuk memastikan teks form tetap terbaca jelas */}
+        {}
         <div className="absolute inset-0 bg-gradient-to-t from-[#08303b]/90 via-transparent to-[#060c17]/50 mix-blend-multiply"></div>
       </div>
 
-      {/* Form Card di Tengah dengan efek Glassmorphism */}
+      {}
       <div className="w-full max-w-[540px] relative z-10 bg-white/95 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-white/40">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-extrabold text-[#147287] tracking-tight mb-1.5 drop-shadow-sm">SEAPEDIA</h2>

@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import api from "../../lib/api";
 import SellerLayout from "../../components/seller/SellerLayout";
 import Swal from "sweetalert2";
 import { Store, Save, UploadCloud } from "lucide-react";
+import { useSeller } from "../../hooks/usecases/useSeller";
 
 export default function SellerStore() {
   const [storeName, setStoreName] = useState("Toko Saya");
@@ -16,6 +17,8 @@ export default function SellerStore() {
     domain: "",
     slogan: "",
     description: "",
+    city: "Jakarta",
+    address: "",
     isOpen: true,
   });
 
@@ -23,11 +26,12 @@ export default function SellerStore() {
   const [logoFile, setLogoFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  async function loadStore() {
+  const { getMyStore, upsertStore } = useSeller();
+
+  const loadStore = useCallback(async () => {
     try {
-      const res = await api.get("/seller/store/me");
-      if (res.data.data) {
-        const store = res.data.data;
+      const store = await getMyStore();
+      if (store) {
         setStoreName(store.name);
         setStoreLogo(store.logoUrl);
         setForm({
@@ -35,6 +39,8 @@ export default function SellerStore() {
           domain: store.domain || "",
           slogan: store.slogan || "",
           description: store.description || "",
+          city: store.city || "Jakarta",
+          address: store.address || "",
           isOpen: store.isOpen !== false,
         });
         if (store.logoUrl) {
@@ -46,11 +52,11 @@ export default function SellerStore() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [getMyStore]);
 
   useEffect(() => {
     loadStore();
-  }, []);
+  }, [loadStore]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -89,12 +95,14 @@ export default function SellerStore() {
       formData.append("domain", form.domain);
       formData.append("slogan", form.slogan);
       formData.append("description", form.description);
+      formData.append("city", form.city);
+      formData.append("address", form.address);
       formData.append("isOpen", form.isOpen);
       if (logoFile) {
         formData.append("logo", logoFile);
       }
 
-      await api.post("/seller/store", formData, {
+      await upsertStore(formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       
@@ -106,12 +114,12 @@ export default function SellerStore() {
         showConfirmButton: false,
       });
       
-      loadStore(); // Reload data
+      loadStore(); 
     } catch (err) {
       Swal.fire({
         icon: "error",
         title: "Gagal Menyimpan",
-        text: err.response?.data?.error || "Terjadi kesalahan sistem.",
+        text: err.response?.data?.message || err.message || "Terjadi kesalahan sistem.",
       });
     } finally {
       setSaving(false);
@@ -136,12 +144,12 @@ export default function SellerStore() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden relative flex-1 flex flex-col">
-        {/* Subtle background gradient to match the design's top-right shine */}
+        {}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-cyan-50/50 to-transparent pointer-events-none rounded-bl-[100px]"></div>
         
         <form onSubmit={handleSubmit} className="p-6 relative z-10 flex flex-col lg:flex-row gap-8 flex-1">
           
-          {/* Left Column (Avatar & Status) */}
+          {}
           <div className="w-full lg:w-[240px] flex-shrink-0 flex flex-col gap-5">
             <div>
               <div 
@@ -200,7 +208,7 @@ export default function SellerStore() {
             </div>
           </div>
 
-          {/* Right Column (Forms) */}
+          {}
           <div className="flex-1 flex flex-col">
             
             <div className="mb-5">
@@ -255,6 +263,46 @@ export default function SellerStore() {
                 placeholder="Misal: Kesegaran Laut di Depan Pintu Anda"
                 className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#147287]/20 focus:border-[#147287] transition-all"
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div>
+                <label className="block text-[13px] font-semibold text-gray-900 mb-1.5">
+                  Kota / Wilayah <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="city"
+                  value={form.city}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#147287]/20 focus:border-[#147287] transition-all"
+                  required
+                >
+                  <option value="Jakarta">Jakarta</option>
+                  <option value="Bogor">Bogor</option>
+                  <option value="Depok">Depok</option>
+                  <option value="Tangerang">Tangerang</option>
+                  <option value="Bekasi">Bekasi</option>
+                  <option value="Bandung">Bandung</option>
+                  <option value="Bandung Raya">Bandung Raya</option>
+                  <option value="Surabaya">Surabaya</option>
+                  <option value="Sidoarjo">Sidoarjo</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-semibold text-gray-900 mb-1.5">
+                  Alamat Lengkap (Untuk Penjemputan) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  value={form.address}
+                  onChange={handleChange}
+                  placeholder="Misal: Jl. Mawar No. 15, RT 02/RW 03"
+                  className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-[14px] focus:outline-none focus:ring-2 focus:ring-[#147287]/20 focus:border-[#147287] transition-all"
+                  required
+                />
+              </div>
             </div>
 
             <div className="mb-2 flex-1 flex flex-col">

@@ -8,7 +8,7 @@ function rupiah(n) {
 export default function DashboardOverview({ 
     title = "Tinjauan", 
     subtitle = "Pantau aktivitas Anda",
-    mainCard = { title: "Total Saldo", value: 0, subValue: "Rp 0", actionText: "Tarik Dana", actionPath: "/" },
+    mainCard = { title: "Total Saldo", value: 0, subValue: "Rp 0" },
     secondaryCard = { title: "Pendapatan", value: 0, subtext: "vs kemarin", trend: "0%", icon: TrendingUp, iconColor: "text-orange-500" },
     actionCards = []
 }) {
@@ -23,7 +23,7 @@ export default function DashboardOverview({
 
     return (
         <div>
-            {/* header */}
+            {}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
                 <div>
                     <h2 className="text-[26px] font-semibold text-gray-900 tracking-tight mb-1">{title}</h2>
@@ -35,9 +35,9 @@ export default function DashboardOverview({
                 </div>
             </div>
 
-            {/* cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Balance Card */}
+            {/* Main Stats Grid */}
+            <div className={`grid grid-cols-1 gap-6 ${actionCards?.length > 0 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
+                {/* Main Card */}
                 <div className="bg-[#006B7A] text-white rounded-xl p-6 flex flex-col justify-between shadow-sm border border-[#005a67]">
                     <div className="flex items-center gap-2 text-sm font-semibold text-white/90 mb-4">
                         <Wallet className="w-5 h-5" />
@@ -61,7 +61,7 @@ export default function DashboardOverview({
                     </div>
                 </div>
 
-                {/* Secondary Stat Card */}
+                {}
                 <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 mb-4">
                         <SecondaryIcon className={`w-5 h-5 ${secondaryCard.iconColor}`} />
@@ -80,7 +80,7 @@ export default function DashboardOverview({
                     </div>
                 </div>
 
-                {/* Small Action Stats */}
+                {}
                 <div className="space-y-4 lg:col-span-1 flex flex-col justify-between">
                     {actionCards.map((card, idx) => {
                         const CardIcon = card.icon;

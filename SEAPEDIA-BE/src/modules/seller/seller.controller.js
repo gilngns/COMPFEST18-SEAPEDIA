@@ -1,68 +1,119 @@
-const service = require("./seller.service");
+const usecase = require("./seller.usecase");
 
-// STORE
+
 async function upsertStore(req, res, next) {
   try {
     const data = { ...req.body };
-    if (req.file) data.logoUrl = `/uploads/products/${req.file.filename}`; // reusing products folder for simplicity, or we can just say /uploads/
-    
-    // Convert isOpen to boolean if it's sent as a string from FormData
+    if (req.file) data.logoUrl = `/uploads/products/${req.file.filename}`;
     if (data.isOpen !== undefined) {
       data.isOpen = data.isOpen === "true" || data.isOpen === true;
     }
-
-    const store = await service.upsertStore(req.user.userId, data);
-    res.json({ message: "Toko tersimpan", data: store });
-  } catch (err) { next(err); }
-}
-async function myStore(req, res, next) {
-  try {
-    const store = await service.getMyStore(req.user.userId);
-    res.json({ data: store });
-  } catch (err) { next(err); }
-}
-async function publicStore(req, res, next) {
-  try {
-    const store = await service.getPublicStore(req.params.id);
-    res.json({ data: store });
-  } catch (err) { next(err); }
+    
+    const result = await usecase.upsertStore(req.user.userId, data);
+    res.json({ message: "Toko berhasil disimpan", data: result });
+  } catch (err) {
+    next(err);
+  }
 }
 
-// PRODUCT
+async function getMyStore(req, res, next) {
+  try {
+    const data = await usecase.getMyStore(req.user.userId);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getPublicStore(req, res, next) {
+  try {
+    const data = await usecase.getPublicStore(req.params.id);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function createProduct(req, res, next) {
   try {
     const data = { ...req.body };
     if (req.files && req.files.length > 0) {
       data.images = req.files.map(f => `/uploads/products/${f.filename}`);
     }
-    const product = await service.createProduct(req.user.userId, data);
-    res.status(201).json({ message: "Produk dibuat", data: product });
-  } catch (err) { next(err); }
+    const product = await usecase.createProduct(req.user.userId, data);
+    res.status(201).json({ message: "Produk ditambahkan", data: product });
+  } catch (err) {
+    next(err);
+  }
 }
+
 async function listMyProducts(req, res, next) {
   try {
-    const products = await service.listMyProducts(req.user.userId);
-    res.json({ data: products });
-  } catch (err) { next(err); }
+    const data = await usecase.listMyProducts(req.user.userId);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
 }
+
 async function updateProduct(req, res, next) {
   try {
     const data = { ...req.body };
     if (req.files && req.files.length > 0) {
       data.images = req.files.map(f => `/uploads/products/${f.filename}`);
     }
-    const product = await service.updateProduct(req.user.userId, req.params.id, data);
-    res.json({ message: "Produk diperbarui", data: product });
-  } catch (err) { next(err); }
+    const product = await usecase.updateProduct(req.user.userId, req.params.id, data);
+    res.json({ message: "Produk diupdate", data: product });
+  } catch (err) {
+    next(err);
+  }
 }
+
 async function deleteProduct(req, res, next) {
   try {
-    await service.deleteProduct(req.user.userId, req.params.id);
+    await usecase.deleteProduct(req.user.userId, req.params.id);
     res.json({ message: "Produk dinonaktifkan" });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getWallet(req, res, next) {
+  try {
+    const data = await usecase.getWallet(req.user.userId);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getWalletTransactions(req, res, next) {
+  try {
+    const data = await usecase.getWalletTransactions(req.user.userId);
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function withdrawFunds(req, res, next) {
+  try {
+    const data = await usecase.withdrawFunds(req.user.userId, req.body.amount);
+    res.json({ message: "Penarikan dana berhasil", data });
+  } catch (err) {
+    next(err);
+  }
 }
 
 module.exports = {
-  upsertStore, myStore, publicStore,
-  createProduct, listMyProducts, updateProduct, deleteProduct,
+  upsertStore,
+  getMyStore,
+  getPublicStore,
+  createProduct,
+  listMyProducts,
+  updateProduct,
+  deleteProduct,
+  getWallet,
+  getWalletTransactions,
+  withdrawFunds,
 };

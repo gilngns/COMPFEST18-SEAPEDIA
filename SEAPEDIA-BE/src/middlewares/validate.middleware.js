@@ -4,7 +4,7 @@ function validate(schema) {
   return (req, res, next) => {
     try {
       const parsedBody = schema.parse(req.body);
-      req.body = parsedBody; // replace body with sanitized/parsed body
+      req.body = parsedBody; 
       next();
     } catch (error) {
       if (error instanceof ZodError) {

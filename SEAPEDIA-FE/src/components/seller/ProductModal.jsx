@@ -1,8 +1,9 @@
-// src/components/seller/ProductModal.jsx
+
 import { useState, useEffect } from "react";
 import api from "../../lib/api";
 import { X, UploadCloud, Image as ImageIcon } from "lucide-react";
 import Swal from "sweetalert2";
+import { useSeller } from "../../hooks/usecases/useSeller";
 
 export default function ProductModal({ product, onClose, onSaved }) {
   const isEdit = !!product;
@@ -42,6 +43,8 @@ export default function ProductModal({ product, onClose, onSaved }) {
     }
   }
 
+  const { createProduct, updateProduct } = useSeller();
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -72,9 +75,9 @@ export default function ProductModal({ product, onClose, onSaved }) {
       const config = { headers: { "Content-Type": "multipart/form-data" } };
 
       if (isEdit) {
-        await api.put(`/seller/products/${product.id}`, formData, config);
+        await updateProduct(product.id, formData, config);
       } else {
-        await api.post("/seller/products", formData, config);
+        await createProduct(formData, config);
       }
       
       Swal.fire({
@@ -89,7 +92,7 @@ export default function ProductModal({ product, onClose, onSaved }) {
       Swal.fire({
         icon: "error",
         title: "Gagal",
-        text: err.response?.data?.error || "Gagal menyimpan produk",
+        text: err.response?.data?.message || err.message || "Gagal menyimpan produk",
       });
     } finally {
       setLoading(false);
@@ -124,7 +127,7 @@ export default function ProductModal({ product, onClose, onSaved }) {
                         <ImageIcon className="w-5 h-5 mb-0.5" />
                       </div>
                     )}
-                    {/* The file input covers all 3 boxes implicitly, but we'll attach it to a single label to allow user to upload all 3 at once */}
+                    {}
                   </div>
                 ))}
               </div>

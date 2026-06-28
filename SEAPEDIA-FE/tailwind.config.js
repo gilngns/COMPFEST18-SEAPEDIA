@@ -12,7 +12,7 @@ export default {
         accent: "#FF8C00", 
       },
       fontFamily: {
-        sans: ["Poppins", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
       },
     },
   },

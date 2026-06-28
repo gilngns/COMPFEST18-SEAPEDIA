@@ -3,7 +3,7 @@ import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import api from "../../lib/api";
+import { authService } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import { Button, Input } from "../../components/ui";
 import Swal from "sweetalert2";
@@ -39,14 +39,14 @@ export default function Login() {
   async function onSubmit(data) {
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", data);
-      const { user, roles, activeRole, needRoleSelection } = res.data;
+      const resData = await authService.login(data);
+      const { user: userData, roles, activeRole, needRoleSelection } = resData.data;
 
       if (needRoleSelection) {
-        setSession({ ...user, roles, activeRole: null });
+        setSession({ ...userData, roles, activeRole: null });
         navigate("/select-role");
       } else {
-        setSession({ ...user, roles, activeRole });
+        setSession({ ...userData, roles, activeRole });
         if (activeRole === "SELLER") {
           navigate("/seller");
         } else if (activeRole === "BUYER") {
@@ -66,8 +66,8 @@ export default function Login() {
         
       Swal.fire({
         icon: "error",
-        title: "Login Gagal",
-        text: errorMessage,
+        title: "Gagal Masuk",
+        text: err.response?.data?.message || "Terjadi kesalahan",
       });
     } finally {
       setLoading(false);
@@ -76,18 +76,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative font-sans">
-      {/* Gambar Background Penuh */}
+      {}
       <div className="absolute inset-0 bg-[#060c17]">
         <img 
           src="/loginbg.jpg" 
           alt="Login Background" 
           className="absolute inset-0 w-full h-full object-cover opacity-50"
         />
-        {/* Overlay gradient untuk memastikan teks form tetap terbaca jelas */}
+        {}
         <div className="absolute inset-0 bg-gradient-to-t from-[#08303b]/90 via-transparent to-[#060c17]/50 mix-blend-multiply"></div>
       </div>
 
-      {/* Form Card di Tengah dengan efek Glassmorphism */}
+      {}
       <div className="w-full max-w-[420px] relative z-10 bg-white/95 backdrop-blur-xl p-8 sm:p-10 rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-white/40">
         <div className="text-center mb-8">
           <h2 className="text-[2.25rem] font-extrabold text-[#147287] tracking-tight mb-2 drop-shadow-sm">SEAPEDIA</h2>

@@ -33,6 +33,7 @@ enum WalletTxType {
   PAYMENT
   REFUND
   EARNING
+  WITHDRAWAL
 }
 
 model User {
@@ -47,6 +48,7 @@ model User {
   orders     Order[]    @relation("BuyerOrders")
   cart       Cart?
   deliveries Delivery[] @relation("DriverDeliveries")
+  reviews    ProductReview[]
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 }
@@ -68,6 +70,8 @@ model Store {
   description String?
   logoUrl     String?
   isOpen      Boolean   @default(true)
+  city        String?   @default("Jakarta")
+  address     String?   @default("Alamat toko belum diatur")
   ownerId     String    @unique
   owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   products    Product[]
@@ -76,9 +80,17 @@ model Store {
   updatedAt   DateTime  @updatedAt
 }
 
+model Category {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  icon     String?
+  products Product[]
+}
+
 model Product {
   id          String      @id @default(uuid())
   storeId     String
+  categoryId  String?
   name        String
   description String?
   price       Decimal     @db.Decimal(15, 2)
@@ -86,9 +98,12 @@ model Product {
   unit        String      @default("pcs")
   isActive    Boolean     @default(true)
   images      String[]    @default([])
+  condition   String      @default("Baru")
   store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category    Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  reviews     ProductReview[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -166,6 +181,7 @@ model Order {
   items          OrderItem[]
   statusHistory  OrderStatusHistory[]
   delivery       Delivery?
+  reviews        ProductReview[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
 }
@@ -238,4 +254,20 @@ model SystemClock {
   id        Int      @id @default(1)
   dayOffset Int      @default(0)
   updatedAt DateTime @updatedAt
+}
+
+model ProductReview {
+  id        String   @id @default(uuid())
+  productId String
+  buyerId   String
+  orderId   String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyer     User     @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, productId])
 }

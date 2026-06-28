@@ -7,16 +7,23 @@ const api = axios.create({
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Jangan redirect jika error berasal dari cek sesi awal (/auth/me)
-      // atau user sudah berada di halaman auth
-      const isAuthRequest = error.config.url.includes("/auth/me");
-      const isAuthPage = window.location.pathname === "/login" || window.location.pathname === "/register";
-      
-      if (!isAuthRequest && !isAuthPage) {
-        window.location.href = "/login";
+  async (error) => {
+    const config = error.config;
+    
+    
+    if (!error.response && config) {
+      config._retryCount = config._retryCount || 0;
+      if (config._retryCount < 5) {
+        config._retryCount += 1;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return api(config);
       }
+    }
+
+    if (error.response && error.response.status === 401) {
+      
+      
+      
     }
     return Promise.reject(error);
   }

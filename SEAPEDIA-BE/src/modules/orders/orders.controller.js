@@ -1,9 +1,10 @@
-const service = require("./orders.service");
+const usecase = require("./orders.usecase");
 
 async function previewCheckout(req, res, next) {
   try {
-    const preview = await service.previewCheckout(req.user.userId);
-    res.json({ data: preview });
+    const discountCode = req.query.discountCode;
+    const data = await usecase.previewCheckout(req.user.userId, discountCode);
+    res.json({ data });
   } catch (err) {
     next(err);
   }
@@ -11,8 +12,8 @@ async function previewCheckout(req, res, next) {
 
 async function checkout(req, res, next) {
   try {
-    const order = await service.checkout(req.user.userId, req.body);
-    res.status(201).json({ message: "Checkout berhasil", data: order });
+    const data = await usecase.checkout(req.user.userId, req.body);
+    res.status(201).json({ message: "Checkout berhasil", data });
   } catch (err) {
     next(err);
   }
@@ -20,8 +21,8 @@ async function checkout(req, res, next) {
 
 async function getMyOrders(req, res, next) {
   try {
-    const orders = await service.getMyOrders(req.user.userId);
-    res.json({ data: orders });
+    const data = await usecase.getMyOrders(req.user.userId);
+    res.json({ data });
   } catch (err) {
     next(err);
   }
@@ -29,8 +30,8 @@ async function getMyOrders(req, res, next) {
 
 async function getStoreOrders(req, res, next) {
   try {
-    const orders = await service.getStoreOrders(req.user.userId);
-    res.json({ data: orders });
+    const data = await usecase.getStoreOrders(req.user.userId);
+    res.json({ data });
   } catch (err) {
     next(err);
   }
@@ -38,9 +39,12 @@ async function getStoreOrders(req, res, next) {
 
 async function updateOrderStatus(req, res, next) {
   try {
-    const { status } = req.body;
-    const order = await service.updateOrderStatus(req.user.userId, req.params.id, status);
-    res.json({ message: `Status pesanan diupdate ke ${status}`, data: order });
+    const data = await usecase.updateOrderStatus(
+      req.user.userId,
+      req.params.id,
+      req.body.status
+    );
+    res.json({ message: "Status pesanan diperbarui", data });
   } catch (err) {
     next(err);
   }

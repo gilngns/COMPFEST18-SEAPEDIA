@@ -1,4 +1,4 @@
-// src/components/seller/SellerLayout.jsx
+
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -36,9 +36,9 @@ export default function SellerLayout({ children, storeName = "Toko Saya", storeL
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* SIDEBAR */}
+      {}
       <aside className="w-60 bg-white border-r border-gray-200 flex flex-col fixed h-screen">
-        {/* store identity */}
+        {}
         <div className="p-6 text-center border-b border-gray-100">
           <div className="w-16 h-16 mx-auto rounded-full bg-white border-2 border-seapedia flex items-center justify-center mb-3 shadow-sm overflow-hidden">
             {storeLogo ? (
@@ -56,7 +56,7 @@ export default function SellerLayout({ children, storeName = "Toko Saya", storeL
           </div>
         </div>
 
-        {/* menu */}
+        {}
         <nav className="flex-1 p-3 space-y-1">
           {menu.map((m) => {
             const Icon = m.icon;
@@ -84,7 +84,7 @@ export default function SellerLayout({ children, storeName = "Toko Saya", storeL
           })}
         </nav>
 
-        {/* bottom */}
+        {}
         <div className="p-4 border-t border-gray-100 flex flex-col gap-1">
           <NavLink
             to="/"
@@ -101,9 +101,9 @@ export default function SellerLayout({ children, storeName = "Toko Saya", storeL
         </div>
       </aside>
 
-      {/* MAIN (ml-60 karena sidebar fixed) */}
+      {}
       <div className="flex-1 flex flex-col ml-60">
-        {/* topbar */}
+        {}
         <header className="bg-white border-b border-gray-200 px-8 py-3 flex items-center justify-between sticky top-0 z-40">
           <h1 className="text-lg font-bold text-seapedia">
             SEAPEDIA Seller Center
@@ -126,7 +126,7 @@ export default function SellerLayout({ children, storeName = "Toko Saya", storeL
           </div>
         </header>
 
-        {/* content */}
+        {}
         <main className="flex-1 p-8">{children}</main>
       </div>
     </div>

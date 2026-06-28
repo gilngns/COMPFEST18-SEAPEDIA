@@ -10,7 +10,7 @@ export default function DriverLayout() {
     const menu = [
         { name: "Dashboard", path: "/driver", icon: Home },
         { name: "Cari Job", path: "/driver/jobs", icon: Truck },
-        { name: "Riwayat Pengiriman", path: "/driver/history", icon: MapPin },
+        { name: "Riwayat Pengiriman", path: "/driver/deliveries", icon: MapPin },
     ];
 
     const handleLogout = () => {

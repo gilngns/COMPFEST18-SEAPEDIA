@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../../lib/api";
 import { MapPin, Plus, Trash2, CheckCircle, Map } from "lucide-react";
 import Swal from "sweetalert2";
+import { useBuyer } from "../../hooks/usecases/useBuyer";
 
 export default function BuyerAddress() {
   const [addresses, setAddresses] = useState([]);
@@ -16,20 +17,22 @@ export default function BuyerAddress() {
     isDefault: false
   });
 
-  const loadAddresses = async () => {
+  const { getAddresses, addAddress, deleteAddress, setDefaultAddress } = useBuyer();
+
+  const loadAddresses = useCallback(async () => {
     try {
-      const res = await api.get("/buyer/address");
-      setAddresses(res.data.data || []);
+      const addrs = await getAddresses();
+      setAddresses(addrs || []);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAddresses]);
 
   useEffect(() => {
     loadAddresses();
-  }, []);
+  }, [loadAddresses]);
 
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -40,13 +43,13 @@ export default function BuyerAddress() {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.post("/buyer/address", form);
+      await addAddress(form);
       Swal.fire({ icon: "success", title: "Berhasil", text: "Alamat ditambahkan", timer: 1500, showConfirmButton: false });
       setShowForm(false);
       setForm({ label: "", recipient: "", phone: "", detail: "", isDefault: false });
       loadAddresses();
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.error || "Gagal menambah alamat" });
+      Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.message || err.message || "Gagal menambah alamat" });
     } finally {
       setSaving(false);
     }
@@ -66,22 +69,22 @@ export default function BuyerAddress() {
 
     if (confirm.isConfirmed) {
       try {
-        await api.delete(`/buyer/address/${id}`);
+        await deleteAddress(id);
         Swal.fire('Terhapus!', 'Alamat telah dihapus.', 'success');
         loadAddresses();
       } catch (err) {
-        Swal.fire('Gagal', err.response?.data?.error || 'Gagal menghapus alamat', 'error');
+        Swal.fire('Gagal', err.response?.data?.message || err.message || 'Gagal menghapus alamat', 'error');
       }
     }
   };
 
   const handleSetDefault = async (id) => {
     try {
-      await api.put(`/buyer/address/${id}/default`);
+      await setDefaultAddress(id);
       Swal.fire({ icon: "success", title: "Berhasil", text: "Alamat utama diperbarui", timer: 1500, showConfirmButton: false });
       loadAddresses();
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.error || "Gagal mengubah alamat utama" });
+      Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.message || err.message || "Gagal mengubah alamat utama" });
     }
   };
 

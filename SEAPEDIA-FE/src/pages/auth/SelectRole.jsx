@@ -1,7 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
-import api from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import Swal from "sweetalert2";
+import { authService } from "../../services/authService";
 
 const ROLE_INFO = {
   BUYER: {
@@ -43,16 +43,16 @@ export default function SelectRole() {
 
   async function choose(role) {
     try {
-      const res = await api.post("/auth/select-role", { role });
-      localStorage.setItem("token", res.data.token);
-      setUser({ ...user, activeRole: res.data.activeRole });
-      if (res.data.activeRole === "SELLER") {
+      const res = await authService.selectRole(role);
+      localStorage.setItem("token", res.token);
+      setUser({ ...user, activeRole: res.activeRole });
+      if (res.activeRole === "SELLER") {
         navigate("/seller");
-      } else if (res.data.activeRole === "BUYER") {
+      } else if (res.activeRole === "BUYER") {
         navigate("/buyer");
-      } else if (res.data.activeRole === "DRIVER") {
+      } else if (res.activeRole === "DRIVER") {
         navigate("/driver");
-      } else if (res.data.activeRole === "ADMIN") {
+      } else if (res.activeRole === "ADMIN") {
         navigate("/admin");
       } else {
         navigate("/dashboard");
@@ -61,14 +61,14 @@ export default function SelectRole() {
       Swal.fire({
         icon: "error",
         title: "Gagal",
-        text: err.response?.data?.error || "Gagal memilih peran",
+        text: err.response?.data?.message || err.message || "Gagal memilih peran",
       });
     }
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative font-sans">
-      {/* Background Penuh */}
+      {}
       <div className="absolute inset-0 bg-[#060c17]">
         <img 
           src="/loginbg.jpg" 

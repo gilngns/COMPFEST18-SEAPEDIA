@@ -24,6 +24,10 @@ app.use("/api/catalog", require("./modules/catalog/catalog.routes"));
 app.use("/api/buyer", require("./modules/buyer/buyer.routes")); 
 app.use("/api/cart", require("./modules/cart/cart.routes")); 
 app.use("/api/orders", require("./modules/orders/orders.routes")); 
+app.use("/api/categories", require("./modules/category/category.routes")); 
+app.use("/api/admin", require("./modules/admin/admin.routes"));
+app.use("/api/discount", require("./modules/discount/discount.routes"));
+app.use("/api/driver", require("./modules/driver/driver.routes"));
 
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint tidak ditemukan" });

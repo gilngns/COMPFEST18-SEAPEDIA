@@ -1,9 +1,10 @@
-// src/pages/seller/SellerProducts.jsx
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../../lib/api";
 import { getImageUrl } from "../../utils/image";
 import SellerLayout from "../../components/seller/SellerLayout";
+import { useSeller } from "../../hooks/usecases/useSeller";
 import ProductModal from "../../components/seller/ProductModal";
 import { Plus, Pencil, Power, PackageOpen, ChevronLeft, ChevronRight, Search, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
@@ -21,40 +22,42 @@ export default function SellerProducts() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  // Pagination logic
+  
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
   const totalPages = Math.ceil(products.length / itemsPerPage);
   const currentProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  async function load() {
+  const { listMyProducts, getMyStore, updateProduct, deleteProduct } = useSeller();
+
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [prodRes, storeRes] = await Promise.all([
-        api.get("/seller/products"),
-        api.get("/seller/store/me"),
+      const [prodData, storeData] = await Promise.all([
+        listMyProducts(),
+        getMyStore(),
       ]);
-      setProducts(prodRes.data.data || []);
-      if (storeRes.data.data) {
-        setStoreName(storeRes.data.data.name);
-        setStoreLogo(storeRes.data.data.logoUrl);
+      setProducts(prodData || []);
+      if (storeData) {
+        setStoreName(storeData.name);
+        setStoreLogo(storeData.logoUrl);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }
+  }, [listMyProducts, getMyStore]);
 
   useEffect(() => {
     load();
-    // kalau dibuka dengan ?new=1 (dari tombol sidebar), langsung buka modal tambah
+    
     if (searchParams.get("new") === "1") {
       setEditing(null);
       setModalOpen(true);
       setSearchParams({});
     }
-  }, []);
+  }, [load, searchParams, setSearchParams]);
 
   function openAdd() {
     setEditing(null);
@@ -66,15 +69,15 @@ export default function SellerProducts() {
     setModalOpen(true);
   }
 
-  // toggle aktif/nonaktif
+  
   async function toggleActive(product) {
     try {
       if (product.isActive) {
-        // nonaktifkan (soft delete)
-        await api.delete(`/seller/products/${product.id}`);
+        
+        await deleteProduct(product.id);
       } else {
-        // aktifkan lagi
-        await api.put(`/seller/products/${product.id}`, { isActive: true });
+        
+        await updateProduct(product.id, { isActive: true });
       }
       Swal.fire({
         icon: "success",
@@ -88,7 +91,7 @@ export default function SellerProducts() {
       Swal.fire({
         icon: "error",
         title: "Gagal",
-        text: err.response?.data?.error || "Gagal mengubah status",
+        text: err.response?.data?.message || err.message || "Gagal mengubah status",
       });
     }
   }
@@ -103,7 +106,7 @@ export default function SellerProducts() {
 
   return (
     <SellerLayout storeName={storeName} storeLogo={storeLogo}>
-      {/* header */}
+      {}
       <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 mb-1">Manajemen Produk</h2>
@@ -129,7 +132,7 @@ export default function SellerProducts() {
         </div>
       </div>
 
-      {/* products list */}
+      {}
       <div className="w-full flex-1 flex flex-col">
         {loading ? (
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden p-8 text-center text-gray-400 shadow-sm">
@@ -214,7 +217,7 @@ export default function SellerProducts() {
               </div>
             </div>
             
-            {/* Pagination Controls */}
+            {}
             {totalPages > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto pt-6 border-t border-gray-200">
                 <p className="text-[13px] text-gray-500">
@@ -260,7 +263,7 @@ export default function SellerProducts() {
         )}
       </div>
 
-      {/* modal */}
+      {}
       {modalOpen && (
         <ProductModal
           product={editing}

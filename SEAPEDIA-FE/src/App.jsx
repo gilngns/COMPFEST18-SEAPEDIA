@@ -1,4 +1,4 @@
-// src/App.jsx
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -25,8 +25,13 @@ import BuyerWallet from "./pages/buyer/BuyerWallet";
 import BuyerAddress from "./pages/buyer/BuyerAddress";
 import DriverLayout from "./components/driver/DriverLayout";
 import DriverDashboard from "./pages/driver/DriverDashboard";
+import DriverJobs from "./pages/driver/DriverJobs";
+import DriverJobDetail from "./pages/driver/DriverJobDetail";
+import DriverDeliveries from "./pages/driver/DriverDeliveries";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminVoucherPromo from "./pages/admin/AdminVoucherPromo";
+import AdminOrders from "./pages/admin/AdminOrders";
 
 import { useAuth } from "./context/AuthContext";
 import { Button } from "./components/ui";
@@ -107,7 +112,7 @@ export default function App() {
               }
             />
 
-          {/* BUYER SHELL */}
+          {}
           <Route
             path="/buyer"
             element={
@@ -122,7 +127,7 @@ export default function App() {
             <Route path="address" element={<BuyerAddress />} />
           </Route>
 
-          {/* DRIVER SHELL */}
+          {}
           <Route
             path="/driver"
             element={
@@ -132,9 +137,12 @@ export default function App() {
             }
           >
             <Route index element={<DriverDashboard />} />
+            <Route path="jobs" element={<DriverJobs />} />
+            <Route path="jobs/:id" element={<DriverJobDetail />} />
+            <Route path="deliveries" element={<DriverDeliveries />} />
           </Route>
 
-          {/* ADMIN SHELL */}
+          {}
           <Route
             path="/admin"
             element={
@@ -144,9 +152,11 @@ export default function App() {
             }
           >
             <Route index element={<AdminDashboard />} />
+            <Route path="promos" element={<AdminVoucherPromo />} />
+            <Route path="orders" element={<AdminOrders />} />
           </Route>
 
-          <Route path="/search" element={<SearchResults />} />
+          <Route path="/catalog" element={<SearchResults />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={
             <ProtectedRoute allowedRoles={["BUYER"]}>

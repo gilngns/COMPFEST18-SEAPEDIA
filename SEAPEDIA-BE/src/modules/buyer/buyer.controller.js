@@ -1,11 +1,11 @@
-const service = require("./buyer.service");
+const usecase = require("./buyer.usecase");
 
-// ===================== WALLET =====================
+
 
 async function getWallet(req, res, next) {
   try {
-    const wallet = await service.getWallet(req.user.userId);
-    res.json({ data: wallet });
+    const data = await usecase.getWallet(req.user.userId);
+    res.json({ data });
   } catch (err) {
     next(err);
   }
@@ -14,8 +14,8 @@ async function getWallet(req, res, next) {
 async function topUpWallet(req, res, next) {
   try {
     const { amount } = req.body;
-    const wallet = await service.topUpWallet(req.user.userId, amount);
-    res.json({ message: "Top up berhasil", data: wallet });
+    const data = await usecase.topUpWallet(req.user.userId, amount);
+    res.json({ message: "Top-up berhasil", data });
   } catch (err) {
     next(err);
   }
@@ -23,19 +23,19 @@ async function topUpWallet(req, res, next) {
 
 async function getWalletTransactions(req, res, next) {
   try {
-    const transactions = await service.getWalletTransactions(req.user.userId);
-    res.json({ data: transactions });
+    const data = await usecase.getWalletTransactions(req.user.userId);
+    res.json({ data });
   } catch (err) {
     next(err);
   }
 }
 
-// ===================== ADDRESS =====================
+
 
 async function getAddresses(req, res, next) {
   try {
-    const addresses = await service.getAddresses(req.user.userId);
-    res.json({ data: addresses });
+    const data = await usecase.getAddresses(req.user.userId);
+    res.json({ data });
   } catch (err) {
     next(err);
   }
@@ -43,8 +43,8 @@ async function getAddresses(req, res, next) {
 
 async function addAddress(req, res, next) {
   try {
-    const address = await service.addAddress(req.user.userId, req.body);
-    res.status(201).json({ message: "Alamat berhasil ditambahkan", data: address });
+    const data = await usecase.addAddress(req.user.userId, req.body);
+    res.status(201).json({ message: "Alamat ditambahkan", data });
   } catch (err) {
     next(err);
   }
@@ -52,8 +52,8 @@ async function addAddress(req, res, next) {
 
 async function deleteAddress(req, res, next) {
   try {
-    await service.deleteAddress(req.user.userId, req.params.id);
-    res.json({ message: "Alamat berhasil dihapus" });
+    await usecase.deleteAddress(req.user.userId, req.params.id);
+    res.json({ message: "Alamat dihapus" });
   } catch (err) {
     next(err);
   }
@@ -61,8 +61,19 @@ async function deleteAddress(req, res, next) {
 
 async function setDefaultAddress(req, res, next) {
   try {
-    const result = await service.setDefaultAddress(req.user.userId, req.params.id);
-    res.json(result);
+    const data = await usecase.setDefaultAddress(req.user.userId, req.params.id);
+    res.json(data); 
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function submitReview(req, res, next) {
+  try {
+    const { id } = req.params; 
+    const { reviews } = req.body;
+    const data = await usecase.submitReview(req.user.userId, id, reviews);
+    res.json(data);
   } catch (err) {
     next(err);
   }
@@ -75,5 +86,6 @@ module.exports = {
   getAddresses,
   addAddress,
   deleteAddress,
-  setDefaultAddress
+  setDefaultAddress,
+  submitReview
 };

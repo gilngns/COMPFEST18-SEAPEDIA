@@ -1,22 +1,26 @@
 import { useState, useEffect } from "react";
-import api from "../../lib/api";
 import DashboardOverview from "../../components/DashboardOverview";
 import { Wallet, ShoppingBag, Truck, Package } from "lucide-react";
+import { useBuyer } from "../../hooks/usecases/useBuyer";
+import { useOrders } from "../../hooks/usecases/useOrders";
 
 export default function BuyerDashboard() {
     const [loading, setLoading] = useState(true);
     const [balance, setBalance] = useState(0);
     const [orders, setOrders] = useState([]);
 
+    const { getWallet } = useBuyer();
+    const { getMyOrders } = useOrders();
+
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [walletRes, orderRes] = await Promise.all([
-                    api.get("/buyer/wallet"),
-                    api.get("/orders/me")
+                const [walletData, orderData] = await Promise.all([
+                    getWallet(),
+                    getMyOrders()
                 ]);
-                setBalance(walletRes.data.data?.balance || 0);
-                setOrders(orderRes.data.data || []);
+                setBalance(walletData?.balance || 0);
+                setOrders(orderData || []);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -24,7 +28,7 @@ export default function BuyerDashboard() {
             }
         };
         loadData();
-    }, []);
+    }, [getWallet, getMyOrders]);
 
     if (loading) {
         return <div className="flex items-center justify-center h-64 text-gray-500 font-medium">Memuat...</div>;

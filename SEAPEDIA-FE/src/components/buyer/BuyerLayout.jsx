@@ -25,9 +25,16 @@ export default function BuyerLayout() {
                 <div className="h-16 flex items-center px-6 border-b border-gray-100">
                     <Link to="/" className="text-2xl font-black text-[#006B7A] tracking-tighter">SEAPEDIA</Link>
                 </div>
-                <div className="p-4 border-b border-gray-100">
-                    <p className="text-sm text-gray-500">Buyer Dashboard</p>
-                    <p className="font-bold text-gray-900 truncate">{user?.username}</p>
+                <div className="p-5 border-b border-gray-100 bg-gradient-to-b from-gray-50/50 to-white">
+                    <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#006B7A] to-teal-700 flex items-center justify-center text-white font-black text-lg shadow-sm border-2 border-white">
+                            {user?.username?.charAt(0).toUpperCase() || 'B'}
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-[#006B7A] uppercase tracking-widest mb-0.5">Buyer</span>
+                            <span className="font-bold text-gray-900 truncate max-w-[140px] text-sm leading-tight">{user?.username || 'User'}</span>
+                        </div>
+                    </div>
                 </div>
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     {menu.map(m => {

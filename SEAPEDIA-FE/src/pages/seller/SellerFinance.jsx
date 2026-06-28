@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import api from "../../lib/api";
+import { useEffect, useState, useCallback } from "react";
 import SellerLayout from "../../components/seller/SellerLayout";
+import { useSeller } from "../../hooks/usecases/useSeller";
 import { 
   Wallet, 
   Building2, 
@@ -12,40 +12,7 @@ import {
   ArrowDownRight
 } from "lucide-react";
 
-const TRANSACTIONS = [
-  {
-    id: "INV-20231012-001",
-    date: "12 Okt 2023, 14:30",
-    desc: "Dana Penjualan Cair",
-    amount: 450000,
-    type: "in",
-    statusColor: "bg-teal-500"
-  },
-  {
-    id: "WD-20231010-089",
-    date: "10 Okt 2023, 09:15",
-    desc: "Penarikan Dana ke Bank BCA",
-    amount: -5000000,
-    type: "out",
-    statusColor: "bg-orange-500"
-  },
-  {
-    id: "INV-20231008-042",
-    date: "08 Okt 2023, 16:45",
-    desc: "Dana Penjualan Cair",
-    amount: 1250000,
-    type: "in",
-    statusColor: "bg-teal-500"
-  },
-  {
-    id: "FEE-20231005-001",
-    date: "05 Okt 2023, 11:20",
-    desc: "Potongan Biaya Layanan",
-    amount: -15000,
-    type: "out",
-    statusColor: "bg-gray-400"
-  }
-];
+// Dummy data removed
 
 function formatRupiah(number) {
   return new Intl.NumberFormat('id-ID', {
@@ -60,30 +27,56 @@ export default function SellerFinance() {
   const [storeName, setStoreName] = useState("Toko Saya");
   const [storeLogo, setStoreLogo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [transactions, setTransactions] = useState([]);
+  const [monthlyWithdrawal, setMonthlyWithdrawal] = useState(0);
+  const [totalIncome, setTotalIncome] = useState(0);
 
-  // Dropdown states
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [selectedDate, setSelectedDate] = useState("7 Hari Terakhir");
   const [selectedType, setSelectedType] = useState("Semua Tipe");
 
-  async function loadStore() {
+  const { getMyStore, getWallet, getWalletTransactions } = useSeller();
+
+  const loadData = useCallback(async () => {
     try {
-      const res = await api.get("/seller/store/me");
-      if (res.data.data) {
-        setStoreName(res.data.data.name);
-        setStoreLogo(res.data.data.logoUrl);
+      const store = await getMyStore();
+      if (store) {
+        setStoreName(store.name);
+        setStoreLogo(store.logoUrl);
+      }
+      const wallet = await getWallet();
+      if (wallet) {
+        setWalletBalance(Number(wallet.balance) || 0);
+      }
+      const txs = await getWalletTransactions();
+      if (txs) {
+        setTransactions(txs);
+        
+        // Hitung penarikan bulan ini (asumsi withdrawal atau amount negatif)
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const w = txs.filter(t => 
+          t.amount < 0 && 
+          new Date(t.createdAt).getMonth() === currentMonth &&
+          new Date(t.createdAt).getFullYear() === currentYear
+        ).reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
+        setMonthlyWithdrawal(w);
+
+        const income = txs.filter(t => t.amount > 0).reduce((sum, t) => sum + Number(t.amount), 0);
+        setTotalIncome(income);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }
+  }, [getMyStore, getWallet, getWalletTransactions]);
 
   useEffect(() => {
-    loadStore();
-  }, []);
+    loadData();
+  }, [loadData]);
 
   if (loading) {
     return (
@@ -92,6 +85,31 @@ export default function SellerFinance() {
       </SellerLayout>
     );
   }
+
+  const filteredTransactions = transactions.filter(tx => {
+    const amountNum = Number(tx.amount);
+    if (selectedType === 'Uang Masuk' && amountNum <= 0) return false;
+    if (selectedType === 'Uang Keluar' && amountNum >= 0) return false;
+
+    const txDate = new Date(tx.createdAt);
+    const now = new Date();
+    
+    if (selectedDate === 'Hari Ini') {
+      if (txDate.toDateString() !== now.toDateString()) return false;
+    } else if (selectedDate === '7 Hari Terakhir') {
+      const diffTime = Math.abs(now - txDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      if (diffDays > 7) return false;
+    } else if (selectedDate === '30 Hari Terakhir') {
+      const diffTime = Math.abs(now - txDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      if (diffDays > 30) return false;
+    } else if (selectedDate === 'Bulan Ini') {
+      if (txDate.getMonth() !== now.getMonth() || txDate.getFullYear() !== now.getFullYear()) return false;
+    }
+
+    return true;
+  });
 
   return (
     <SellerLayout storeName={storeName} storeLogo={storeLogo}>
@@ -103,9 +121,9 @@ export default function SellerFinance() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        {/* Main Balance Card */}
+        {}
         <div className="lg:col-span-2 bg-gradient-to-br from-[#006B7A] to-[#004d58] rounded-xl shadow-md px-6 py-4 relative overflow-hidden text-white flex flex-col justify-center">
-          {/* subtle decorative background glow */}
+          {}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl opacity-10 -mr-10 -mt-10 pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -115,43 +133,37 @@ export default function SellerFinance() {
                 Total Saldo Aktif
               </div>
               <h3 className="text-3xl sm:text-4xl font-bold tracking-tight mb-0.5">
-                Rp 12.450.000
+                {formatRupiah(walletBalance)}
               </h3>
               <p className="text-[12px] text-white/70 font-medium">
-                Tersedia untuk ditarik ke rekening bank
+                Total saldo yang Anda miliki saat ini
               </p>
             </div>
             
             <div className="flex items-center gap-3">
-              <button className="bg-[#ff8c00] hover:bg-[#e67e00] text-white px-4 py-2 rounded-lg font-bold text-[13px] transition-all flex items-center gap-2 shadow-sm shadow-orange-500/20">
-                <Building2 className="w-4 h-4" />
-                Tarik Dana
-              </button>
-              <button className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-4 py-2 rounded-lg font-bold text-[13px] transition-all">
-                Rekening Bank
-              </button>
+              {/* Tombol aksi bisa ditambahkan di sini kelak */}
             </div>
           </div>
         </div>
 
-        {/* Side Cards */}
+        {}
         <div className="flex flex-col gap-3">
-          {/* Pending Balance */}
+          {}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-2.5 hover:border-gray-300 transition-colors flex items-center justify-between flex-1">
             <div>
-              <p className="text-gray-500 font-medium text-[11px] mb-0.5">Saldo Tertahan</p>
-              <p className="text-lg font-bold text-gray-900 tracking-tight">Rp 3.200.000</p>
+              <p className="text-gray-500 font-medium text-[11px] mb-0.5">Total Pemasukan</p>
+              <p className="text-lg font-bold text-gray-900 tracking-tight">{formatRupiah(totalIncome)}</p>
             </div>
             <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
               <Clock className="w-4 h-4 text-orange-500" />
             </div>
           </div>
 
-          {/* Monthly Withdrawal */}
+          {}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-2.5 hover:border-gray-300 transition-colors flex items-center justify-between flex-1">
             <div>
               <p className="text-gray-500 font-medium text-[11px] mb-0.5">Penarikan (Bulan Ini)</p>
-              <p className="text-lg font-bold text-gray-900 tracking-tight">Rp 8.500.000</p>
+              <p className="text-lg font-bold text-gray-900 tracking-tight">{formatRupiah(monthlyWithdrawal)}</p>
             </div>
             <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
               <ArrowDownRight className="w-4 h-4 text-blue-600" />
@@ -160,13 +172,13 @@ export default function SellerFinance() {
         </div>
       </div>
 
-      {/* Transaction History Section */}
+      {}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden flex-1 flex flex-col min-h-0">
-        {/* Table Header / Filters */}
+        {}
         <div className="bg-[#006B7A] p-4 px-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h3 className="text-lg font-bold text-white tracking-tight">Riwayat Transaksi</h3>
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            {/* Date Filter Dropdown */}
+            {}
             <div className="relative">
               <button 
                 type="button"
@@ -182,7 +194,7 @@ export default function SellerFinance() {
               
               {showDateDropdown && (
                 <>
-                  {/* Invisible overlay to click outside and close */}
+                  {}
                   <div className="fixed inset-0 z-10" onClick={() => setShowDateDropdown(false)}></div>
                   <div className="absolute right-0 sm:left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1.5 z-20 overflow-hidden transform origin-top-right transition-all">
                     {['Hari Ini', '7 Hari Terakhir', '30 Hari Terakhir', 'Bulan Ini'].map(opt => (
@@ -199,7 +211,7 @@ export default function SellerFinance() {
               )}
             </div>
 
-            {/* Type Filter Dropdown */}
+            {}
             <div className="relative">
               <button 
                 type="button"
@@ -233,7 +245,7 @@ export default function SellerFinance() {
           </div>
         </div>
 
-        {/* Table */}
+        {}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -244,46 +256,57 @@ export default function SellerFinance() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {TRANSACTIONS.map((tx, idx) => (
-                <tr key={idx} className="hover:bg-blue-50/30 transition-colors group">
-                  <td className="py-2 px-5">
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${tx.amount > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-orange-50 border-orange-100'}`}>
-                        {tx.amount > 0 ? (
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-emerald-600"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                        ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-orange-600"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-bold text-gray-800 text-[13px]">{tx.desc}</p>
-                        <p className="text-[11px] text-gray-500">{tx.date}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-2 px-5">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-50 border border-gray-200 text-gray-600 text-[11px] font-mono group-hover:bg-white transition-colors">
-                      {tx.id}
-                    </span>
-                  </td>
-                  <td className="py-2 px-5 text-right">
-                    <p className={`font-bold text-[13px] ${tx.amount > 0 ? 'text-emerald-600' : 'text-gray-900'}`}>
-                      {tx.amount > 0 ? '+' : '-'} {formatRupiah(Math.abs(tx.amount)).replace('Rp', 'Rp ')}
-                    </p>
-                    <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold uppercase tracking-wide">
-                      Berhasil
-                    </span>
-                  </td>
+              {filteredTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="py-8 text-center text-gray-500 text-sm">Belum ada transaksi</td>
                 </tr>
-              ))}
+              ) : filteredTransactions.map((tx, idx) => {
+                const amountNum = Number(tx.amount);
+                return (
+                  <tr key={idx} className="hover:bg-blue-50/30 transition-colors group">
+                    <td className="py-2 px-5">
+                      <div className="flex items-center gap-3.5">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${amountNum > 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-orange-50 border-orange-100'}`}>
+                          {amountNum > 0 ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-emerald-600"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-orange-600"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-800 text-[13px]">
+                            {tx.description ? tx.description.replace(/([a-f0-9]{8})-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/ig, (match, p1) => p1.toUpperCase()) : tx.type}
+                          </p>
+                          <p className="text-[11px] text-gray-500">
+                            {new Date(tx.createdAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-2 px-5">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-50 border border-gray-200 text-gray-600 text-[11px] font-mono group-hover:bg-white transition-colors">
+                        {tx.id.split('-')[0] + '-' + tx.id.slice(-4)}
+                      </span>
+                    </td>
+                    <td className="py-2 px-5 text-right">
+                      <p className={`font-bold text-[13px] ${amountNum > 0 ? 'text-emerald-600' : 'text-gray-900'}`}>
+                        {amountNum > 0 ? '+' : '-'} {formatRupiah(Math.abs(amountNum)).replace('Rp', 'Rp ')}
+                      </p>
+                      <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold uppercase tracking-wide">
+                        Berhasil
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
+        {}
         <div className="p-3 px-5 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between mt-auto">
           <span className="text-xs text-gray-500">
-            Menampilkan 1–4 dari 48 transaksi
+            Menampilkan transaksi terbaru
           </span>
           <div className="flex items-center gap-2">
             <button className="w-7 h-7 rounded border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50 disabled:opacity-50 transition-colors" disabled>

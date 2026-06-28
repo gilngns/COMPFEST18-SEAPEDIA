@@ -1,21 +1,21 @@
-const service = require("./review.service");
+const usecase = require("./review.usecase");
 
-async function create(req, res, next) {
+async function createReview(req, res, next) {
   try {
-    const review = await service.createReview(req.body);
-    res.status(201).json({ message: "Review terkirim", data: review });
+    const data = await usecase.createReview(req.body);
+    res.status(201).json({ success: true, message: "Ulasan berhasil dikirim", data });
   } catch (err) {
     next(err);
   }
 }
 
-async function list(req, res, next) {
+async function listReviews(req, res, next) {
   try {
-    const reviews = await service.listReviews();
-    res.json({ data: reviews });
+    const data = await usecase.listReviews();
+    res.json({ success: true, data });
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { create, list };
+module.exports = { createReview, listReviews };

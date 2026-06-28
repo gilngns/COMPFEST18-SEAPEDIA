@@ -9,8 +9,6 @@ export default function AdminLayout() {
 
     const menu = [
         { name: "Dashboard", path: "/admin", icon: Home },
-        { name: "Users", path: "/admin/users", icon: Users },
-        { name: "Stores", path: "/admin/stores", icon: Store },
         { name: "Voucher/Promo", path: "/admin/promos", icon: Ticket },
     ];
 

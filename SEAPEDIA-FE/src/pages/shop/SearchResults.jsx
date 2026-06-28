@@ -29,40 +29,39 @@ const FALLBACK_IMAGES = [
     "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400&q=90",
 ];
 
+import { useCatalog } from "../../hooks/usecases/useCatalog";
+
 const SORT_OPTIONS = ["Paling Sesuai", "Terbaru", "Harga: Rendah - Tinggi", "Harga: Tinggi - Rendah"];
 
 export default function SearchResults() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const query = searchParams.get("q") || "";
-    const [products, setProducts] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchSearchResults = async () => {
-            setIsLoading(true);
-            try {
-                const res = await api.get('/catalog', { params: { search: query } });
-                setProducts(res.data.data || []);
-            } catch (error) {
-                console.error("Gagal memuat hasil pencarian:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchSearchResults();
-    }, [query]);
+    
     const [activeSort, setActiveSort] = useState("Paling Sesuai");
     const [minPrice, setMinPrice] = useState("");
     const [maxPrice, setMaxPrice] = useState("");
-    const [lokasi, setLokasi] = useState({ jabodetabek: false, bandung: true, surabaya: false });
-    const [rating4up, setRating4up] = useState(true);
-    const [kondisiBaru, setKondisiBaru] = useState(true);
+    const [lokasi, setLokasi] = useState({ jabodetabek: false, bandung: false, surabaya: false });
+    const [rating4up, setRating4up] = useState(false);
+    const [kondisiBaru, setKondisiBaru] = useState(false);
     const [kondisiBekas, setKondisiBekas] = useState(false);
     const [savedItems, setSavedItems] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
 
-    const totalPages = 10;
+    const activeLocations = Object.keys(lokasi).filter(k => lokasi[k]).join(",");
+    const activeConditions = [kondisiBaru && "Baru", kondisiBekas && "Pernah Dipakai"].filter(Boolean).join(",");
+
+    const { products, isLoading, totalPages, totalItems } = useCatalog({ 
+        search: query,
+        minPrice,
+        maxPrice,
+        sort: activeSort,
+        locations: activeLocations,
+        rating: rating4up,
+        conditions: activeConditions,
+        page: currentPage,
+        limit: 8
+    });
 
     const toggleSaved = (id) => {
         setSavedItems(prev => ({ ...prev, [id]: !prev[id] }));
@@ -73,14 +72,14 @@ export default function SearchResults() {
             <PublicNavbar initialSearch={query} />
 
             {/* BREADCRUMB & HEADER */}<main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-6">
-                {/* Header */}
+                {}
                 <div className="mb-5">
                     <h1 className="text-2xl font-bold text-gray-900">Menampilkan hasil untuk "{query}"</h1>
-                    {!isLoading && <p className="text-sm text-gray-500 mt-1">{products.length} produk ditemukan</p>}
+                    {!isLoading && <p className="text-sm text-gray-500 mt-1">{totalItems} produk ditemukan</p>}
                 </div>
 
                 <div className="flex gap-6">
-                    {/* SIDEBAR FILTER */}
+                    {}
                     <aside className="w-44 shrink-0 hidden lg:block">
                         <div className="bg-white rounded-xl border border-gray-100 p-4 sticky top-24">
                             <div className="flex items-center justify-between mb-4">
@@ -88,7 +87,7 @@ export default function SearchResults() {
                                 <button className="text-[#006B7A] text-xs font-semibold hover:underline">Reset</button>
                             </div>
 
-                            {/* Harga */}
+                            {}
                             <div className="mb-5">
                                 <p className="text-xs font-bold text-gray-700 mb-2">Harga</p>
                                 <input
@@ -107,7 +106,7 @@ export default function SearchResults() {
                                 />
                             </div>
 
-                            {/* Lokasi */}
+                            {}
                             <div className="mb-5">
                                 <p className="text-xs font-bold text-gray-700 mb-2">Lokasi</p>
                                 {[
@@ -128,7 +127,7 @@ export default function SearchResults() {
                                 <button className="text-[#006B7A] text-xs font-semibold mt-1 hover:underline">Lihat Semua ↓</button>
                             </div>
 
-                            {/* Rating */}
+                            {}
                             <div className="mb-5">
                                 <p className="text-xs font-bold text-gray-700 mb-2">Rating</p>
                                 <label className="flex items-center gap-2 cursor-pointer group">
@@ -145,7 +144,7 @@ export default function SearchResults() {
                                 </label>
                             </div>
 
-                            {/* Kondisi */}
+                            {}
                             <div>
                                 <p className="text-xs font-bold text-gray-700 mb-2">Kondisi</p>
                                 <label className="flex items-center gap-2 mb-1.5 cursor-pointer">
@@ -160,9 +159,9 @@ export default function SearchResults() {
                         </div>
                     </aside>
 
-                    {/* MAIN CONTENT */}
+                    {}
                     <div className="flex-1 min-w-0">
-                        {/* Sort Bar */}
+                        {}
                         <div className="flex items-center gap-2 mb-4 flex-wrap">
                             <span className="text-sm text-gray-500 font-medium shrink-0">Urutkan:</span>
                             {SORT_OPTIONS.map(opt => (
@@ -186,7 +185,7 @@ export default function SearchResults() {
                             ) : products.length > 0 ? (
                                 products.map((p, i) => (
                                 <Link to={`/product/${p.id}`} key={p.id} className="bg-white rounded-xl border border-transparent shadow-[0_4px_16px_-4px_rgba(0,0,0,0.06)] hover:border-[#006B7A]/30 hover:shadow-[0_12px_24px_-8px_rgba(0,107,122,0.15)] hover:-translate-y-1 transition-all duration-300 cursor-pointer group flex flex-col">
-                                    {/* Image */}
+                                    {}
                                     <div className="relative aspect-square bg-gray-100 rounded-t-xl overflow-hidden">
                                         <img
                                             src={getImageUrl(p.images?.[0], FALLBACK_IMAGES[i % FALLBACK_IMAGES.length])}
@@ -206,7 +205,7 @@ export default function SearchResults() {
                                         </button>
                                     </div>
 
-                                    {/* Info */}
+                                    {}
                                     <div className="p-3 flex flex-col flex-1">
                                         <p className="text-xs text-gray-700 font-medium line-clamp-2 mb-2 leading-relaxed group-hover:text-[#006B7A] transition-colors">
                                             {p.name}
@@ -242,7 +241,7 @@ export default function SearchResults() {
                             )}
                         </div>
 
-                        {/* Pagination */}
+                        {}
                         <div className="flex items-center justify-center gap-1">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -252,30 +251,38 @@ export default function SearchResults() {
                                 <ChevronLeft className="w-4 h-4 text-gray-600" />
                             </button>
 
-                            {[1, 2, 3].map(p => (
-                                <button
-                                    key={p}
-                                    onClick={() => setCurrentPage(p)}
-                                    className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                                        currentPage === p
-                                            ? "bg-[#006B7A] text-white"
-                                            : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                                    }`}
-                                >
-                                    {p}
-                                </button>
-                            ))}
-                            <span className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">...</span>
-                            <button
-                                onClick={() => setCurrentPage(totalPages)}
-                                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
-                                    currentPage === totalPages
-                                        ? "bg-[#006B7A] text-white"
-                                        : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                                }`}
-                            >
-                                {totalPages}
-                            </button>
+                            {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                                const p = i + 1;
+                                return (
+                                    <button
+                                        key={p}
+                                        onClick={() => setCurrentPage(p)}
+                                        className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                                            currentPage === p
+                                                ? "bg-[#006B7A] text-white"
+                                                : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
+                            
+                            {totalPages > 3 && (
+                                <>
+                                    <span className="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">...</span>
+                                    <button
+                                        onClick={() => setCurrentPage(totalPages)}
+                                        className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
+                                            currentPage === totalPages
+                                                ? "bg-[#006B7A] text-white"
+                                                : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {totalPages}
+                                    </button>
+                                </>
+                            )}
 
                             <button
                                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -289,7 +296,7 @@ export default function SearchResults() {
                 </div>
             </main>
 
-            {/* FOOTER */}
+            {}
             <Footer />
         </div>
     );

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import api from "../lib/api";
+import { authService } from "../services/authService";
 
 const AuthContext = createContext();
 
@@ -8,10 +8,9 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api
-      .get("/auth/me")
+    authService.getMe()
       .then((res) => {
-        setUser({ ...res.data.data, activeRole: res.data.activeRole });
+        setUser({ ...res.data, activeRole: res.activeRole });
       })
       .catch(() => {
         setUser(null);
@@ -25,11 +24,11 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     try {
-      await api.post("/auth/logout");
+      await authService.logout();
     } finally {
       setUser(null);
       const path = window.location.pathname;
-      if (path !== "/" && path !== "/search" && !path.startsWith("/product")) {
+      if (path !== "/" && path !== "/search" && !path.startsWith("/product") && path !== "/catalog") {
         window.location.href = "/login";
       }
     }

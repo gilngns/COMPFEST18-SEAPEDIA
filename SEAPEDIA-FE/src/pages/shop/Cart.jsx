@@ -6,50 +6,24 @@ import PublicNavbar from "../../components/PublicNavbar";
 import api from "../../lib/api";
 import Swal from "sweetalert2";
 import { getImageUrl } from "../../utils/image";
+import { useCart } from "../../hooks/usecases/useCart";
 
 function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
 }
 
 export default function Cart() {
-    const [cart, setCart] = useState(null);
-    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-
-    const loadCart = async () => {
-        try {
-            const res = await api.get("/cart");
-            setCart(res.data.data);
-        } catch (err) {
-            console.error("Gagal memuat keranjang", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadCart();
-    }, []);
+    const { cart, isLoading: loading, fetchCart, updateQuantity, removeItem, clearCart } = useCart();
 
     const handleQuantityChange = async (itemId, currentQty, delta) => {
         const newQty = currentQty + delta;
         if (newQty < 1) return;
-        
-        try {
-            await api.put(`/cart/${itemId}`, { quantity: newQty });
-            loadCart();
-        } catch (err) {
-            Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.error || err.response?.data?.message || "Stok tidak cukup" });
-        }
+        await updateQuantity(itemId, newQty);
     };
 
     const handleDelete = async (itemId) => {
-        try {
-            await api.delete(`/cart/${itemId}`);
-            loadCart();
-        } catch (err) {
-            Swal.fire({ icon: "error", title: "Gagal", text: "Gagal menghapus item" });
-        }
+        await removeItem(itemId);
     };
 
     const handleClearCart = async () => {
@@ -62,12 +36,7 @@ export default function Cart() {
         });
 
         if (confirm.isConfirmed) {
-            try {
-                await api.delete("/cart");
-                loadCart();
-            } catch (err) {
-                Swal.fire('Gagal', 'Gagal mengosongkan keranjang', 'error');
-            }
+            await clearCart();
         }
     };
 
@@ -90,7 +59,7 @@ export default function Cart() {
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* CART ITEMS LIST */}
+                    {}
                     <div className="flex-1 space-y-4">
                         {loading ? (
                             <div className="text-center py-12 text-gray-500 font-medium">Memuat keranjang...</div>
@@ -155,7 +124,7 @@ export default function Cart() {
                         )}
                     </div>
 
-                    {/* SUMMARY CART */}
+                    {}
                     <div className="w-full lg:w-80 shrink-0">
                         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sticky top-24">
                             <h2 className="font-bold text-gray-900 mb-4">Ringkasan Belanja</h2>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../../lib/api";
 import SellerLayout from "../../components/seller/SellerLayout";
 import { 
@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { getImageUrl } from "../../utils/image";
+import { useOrders } from "../../hooks/usecases/useOrders";
+import { useSeller } from "../../hooks/usecases/useSeller";
 
 function formatRupiah(number) {
   return new Intl.NumberFormat('id-ID', {
@@ -54,24 +56,27 @@ export default function SellerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadOrders = async () => {
+  const { getStoreOrders, updateOrderStatus } = useOrders();
+  const { getMyStore } = useSeller();
+
+  const loadOrders = useCallback(async () => {
     try {
-      const res = await api.get("/orders/store");
-      setOrders(res.data.data || []);
+      const ordersData = await getStoreOrders();
+      setOrders(ordersData || []);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [getStoreOrders]);
 
   useEffect(() => {
     async function loadStore() {
       try {
-        const res = await api.get("/seller/store/me");
-        if (res.data.data) {
-          setStoreName(res.data.data.name);
-          setStoreLogo(res.data.data.logoUrl);
+        const store = await getMyStore();
+        if (store) {
+          setStoreName(store.name);
+          setStoreLogo(store.logoUrl);
         }
       } catch (err) {
         console.error(err);
@@ -79,15 +84,15 @@ export default function SellerOrders() {
     }
     loadStore();
     loadOrders();
-  }, []);
+  }, [loadOrders, getMyStore]);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
-      await api.put(`/orders/store/${orderId}/status`, { status: newStatus });
+      await updateOrderStatus(orderId, newStatus);
       Swal.fire({ icon: "success", title: "Berhasil", text: "Status diperbarui", timer: 1500, showConfirmButton: false });
       loadOrders();
     } catch (err) {
-      Swal.fire("Gagal", err.response?.data?.message || "Gagal update status", "error");
+      Swal.fire("Gagal", err.response?.data?.message || err.message || "Gagal update status", "error");
     }
   };
 
@@ -112,7 +117,7 @@ export default function SellerOrders() {
 
   return (
     <SellerLayout storeName={storeName} storeLogo={storeLogo}>
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Pesanan Masuk</h2>
@@ -125,7 +130,7 @@ export default function SellerOrders() {
         </button>
       </div>
 
-      {/* Tabs */}
+      {}
       <div className="bg-white rounded-t-xl border-b border-gray-200 px-2 flex overflow-x-auto hide-scrollbar">
         {tabs.map((tab) => (
           <button
@@ -149,7 +154,7 @@ export default function SellerOrders() {
         ))}
       </div>
 
-      {/* Filters Area */}
+      {}
       <div className="bg-white border-b border-x border-gray-200 p-4 rounded-b-xl mb-6 flex flex-col sm:flex-row items-center gap-4 shadow-sm">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -161,7 +166,7 @@ export default function SellerOrders() {
         </div>
       </div>
 
-      {/* Orders List */}
+      {}
       <div className="space-y-6">
         {loading ? (
           <div className="text-center py-10 text-gray-500 font-medium">Memuat pesanan...</div>
@@ -169,7 +174,7 @@ export default function SellerOrders() {
           <div className="text-center py-10 text-gray-500">Tidak ada pesanan.</div>
         ) : filteredOrders.map((order) => (
           <div key={order.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-            {/* Card Header */}
+            {}
             <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <span className="font-bold text-gray-900 text-sm tracking-wide">#{order.id.slice(0, 8).toUpperCase()}</span>
@@ -182,12 +187,12 @@ export default function SellerOrders() {
               </span>
             </div>
 
-            {/* Card Body */}
+            {}
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-              {/* Vertical divider on md screens */}
+              {}
               <div className="hidden md:block absolute left-1/2 top-6 bottom-6 w-px bg-gray-100"></div>
 
-              {/* Left Col: Product Info */}
+              {}
               <div className="flex flex-col gap-4">
                 {order.items.map(item => (
                   <div key={item.id} className="flex gap-4">
@@ -204,14 +209,23 @@ export default function SellerOrders() {
                     </div>
                   </div>
                 ))}
-                <div className="mt-auto flex flex-wrap gap-2">
-                    <div className="flex items-center gap-1 text-[#006B7A] font-bold text-sm bg-teal-50 px-2.5 py-1 rounded-md">
-                        <Tag className="w-3.5 h-3.5" /> Total Pesanan: {formatRupiah(order.total)}
-                    </div>
+                <div className="mt-auto bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <div className="space-y-1.5 text-xs text-gray-600 mb-2">
+                    <div className="flex justify-between"><span>Subtotal Produk</span><span>{formatRupiah(order.subtotal)}</span></div>
+                    {Number(order.discount) > 0 && (
+                      <div className="flex justify-between text-red-500 font-medium"><span>Diskon</span><span>-{formatRupiah(order.discount)}</span></div>
+                    )}
+                    <div className="flex justify-between"><span>Ongkos Kirim</span><span>{formatRupiah(order.deliveryFee)}</span></div>
+                    <div className="flex justify-between"><span>PPN 12%</span><span>{formatRupiah(order.ppn)}</span></div>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-200 font-bold text-sm text-gray-900">
+                    <span>Total Pembayaran</span>
+                    <span className="text-[#006B7A]">{formatRupiah(order.total)}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Right Col: Buyer & Shipping Info */}
+              {}
               <div className="flex flex-col justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 tracking-wider mb-3">INFORMASI PEMBELI</p>
@@ -243,12 +257,12 @@ export default function SellerOrders() {
               </div>
             </div>
 
-            {/* Card Footer: Progress & Actions */}
+            {}
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-6">
               
-              {/* Progress Steps */}
+              {}
               <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-4 md:gap-12 relative">
-                {/* Connecting Line background */}
+                {}
                 <div className="absolute top-3 left-4 right-4 h-0.5 bg-gray-200 -z-0"></div>
                 
                 {[
@@ -270,7 +284,7 @@ export default function SellerOrders() {
                 ))}
               </div>
 
-              {/* Action Button */}
+              {}
               {order.status === "SEDANG_DIKEMAS" && (
                 <button 
                   onClick={() => handleUpdateStatus(order.id, "MENUNGGU_PENGIRIM")}

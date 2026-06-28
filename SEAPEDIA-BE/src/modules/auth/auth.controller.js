@@ -1,9 +1,9 @@
-const service = require("./auth.service");
+const usecase = require("./auth.usecase");
 
 async function register(req, res, next) {
   try {
-    const result = await service.register(req.body);
-    res.status(201).json({ message: "Registrasi berhasil", data: result });
+    const data = await usecase.register(req.body);
+    res.status(201).json({ message: "Registrasi berhasil", data });
   } catch (err) {
     next(err);
   }
@@ -11,14 +11,17 @@ async function register(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    const { token, ...result } = await service.login(req.body);
-    res.cookie("token", token, {
+    const data = await usecase.login(req.body);
+
+    res.cookie("token", data.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
+      sameSite: "lax", 
     });
-    res.json({ message: "Login berhasil", token, ...result });
+
+    const { token, ...responseData } = data;
+
+    res.json({ message: "Login berhasil", data: responseData });
   } catch (err) {
     next(err);
   }
@@ -26,17 +29,15 @@ async function login(req, res, next) {
 
 async function selectRole(req, res, next) {
   try {
-    const { token, ...result } = await service.selectRole({
-      userId: req.user.userId,
-      role: req.body.role,
-    });
-    res.cookie("token", token, {
+    const data = await usecase.selectRole({ userId: req.user.userId, role: req.body.role });
+
+    res.cookie("token", data.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "lax",
     });
-    res.json({ message: "Peran aktif diatur", token, ...result });
+
+    res.json({ message: `Role ${data.activeRole} diaktifkan`, activeRole: data.activeRole });
   } catch (err) {
     next(err);
   }
@@ -44,19 +45,18 @@ async function selectRole(req, res, next) {
 
 async function me(req, res, next) {
   try {
-    const profile = await service.getProfile(req.user.userId);
-    res.json({ data: profile, activeRole: req.user.activeRole });
+    const profile = await usecase.getProfile(req.user.userId);
+    res.json({
+      data: profile,
+      activeRole: req.user.activeRole,
+    });
   } catch (err) {
     next(err);
   }
 }
 
-async function logout(req, res) {
-  res.clearCookie("token", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
+async function logout(req, res, next) {
+  res.clearCookie("token");
   res.json({ message: "Logout berhasil" });
 }
 
