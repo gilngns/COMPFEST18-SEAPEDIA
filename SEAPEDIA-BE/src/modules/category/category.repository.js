@@ -1,11 +1,10 @@
 const prisma = require("../../config/prisma");
 
-class CategoryRepository {
-    async getCategories() {
+const getCategories = async () => {
         return prisma.category.findMany({
             orderBy: { name: 'asc' }
         });
     }
-}
 
-module.exports = new CategoryRepository();
+module.exports = { getCategories };
+

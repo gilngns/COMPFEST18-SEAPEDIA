@@ -1,27 +1,16 @@
 const bcrypt = require("bcryptjs");
 const authRepository = require("./auth.repository");
 const { signToken } = require("../../utils/jwt");
+const AppError = require("../../utils/AppError");
 
 const VALID_ROLES = ["BUYER", "SELLER", "DRIVER"];
 
-class AuthUseCase {
-  async register({ username, email, password, roles }) {
-    if (!username || !email || !password) {
-      throw { status: 400, message: "Username, email, dan password wajib diisi" };
-    }
-    if (!Array.isArray(roles) || roles.length === 0) {
-      throw { status: 400, message: "Pilih minimal satu peran" };
-    }
+const register = async ({ username, email, password, roles }) => {
     const cleanRoles = [...new Set(roles)]; 
-    for (const r of cleanRoles) {
-      if (!VALID_ROLES.includes(r)) {
-        throw { status: 400, message: `Peran tidak valid: ${r}` };
-      }
-    }
 
     const existing = await authRepository.findUserByUsernameOrEmail(username, email);
     if (existing) {
-      throw { status: 409, message: "Username atau email sudah terdaftar" };
+      throw new AppError("Username atau email sudah terdaftar", 409);
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -34,20 +23,15 @@ class AuthUseCase {
       roles: user.roles.map((r) => r.role),
     };
   }
-
-  async login({ email, password }) {
-    if (!email || !password) {
-      throw { status: 400, message: "Email dan password wajib diisi" };
-    }
-
+const login = async ({ email, password }) => {
     const user = await authRepository.findUserByEmail(email);
     if (!user) {
-      throw { status: 401, message: "Kredensial salah" };
+      throw new AppError("Kredensial salah", 401);
     }
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      throw { status: 401, message: "Kredensial salah" };
+      throw new AppError("Kredensial salah", 401);
     }
 
     const roles = user.roles.map((r) => r.role);
@@ -62,25 +46,23 @@ class AuthUseCase {
       needRoleSelection: roles.length > 1, 
     };
   }
-
-  async selectRole({ userId, role }) {
+const selectRole = async ({ userId, role }) => {
     const owned = await authRepository.findUserRole(userId, role);
     if (!owned) {
-      throw { status: 403, message: "Kamu tidak memiliki peran tersebut" };
+      throw new AppError("Kamu tidak memiliki peran tersebut", 403);
     }
 
     const token = signToken({ userId, activeRole: role });
     return { token, activeRole: role };
   }
-
-  async addRole({ userId, role }) {
+const addRole = async ({ userId, role }) => {
     if (!VALID_ROLES.includes(role)) {
-      throw { status: 400, message: `Peran tidak valid: ${role}` };
+      throw new AppError(`Peran tidak valid: ${role}`, 400);
     }
     
     const owned = await authRepository.findUserRole(userId, role);
     if (owned) {
-      throw { status: 409, message: "Kamu sudah memiliki peran tersebut" };
+      throw new AppError("Kamu sudah memiliki peran tersebut", 409);
     }
 
     await authRepository.addRoleToUser(userId, role);
@@ -88,10 +70,9 @@ class AuthUseCase {
     const token = signToken({ userId, activeRole: role });
     return { token, activeRole: role };
   }
-
-  async getProfile(userId) {
+const getProfile = async (userId) => {
     const user = await authRepository.getUserProfile(userId);
-    if (!user) throw { status: 404, message: "User tidak ditemukan" };
+    if (!user) throw new AppError("User tidak ditemukan", 404);
 
     return {
       id: user.id,
@@ -102,6 +83,6 @@ class AuthUseCase {
       walletBalance: user.wallet ? user.wallet.balance : null,
     };
   }
-}
 
-module.exports = new AuthUseCase();
+module.exports = { register, login, selectRole, addRole, getProfile };
+

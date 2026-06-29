@@ -1,21 +1,11 @@
 const reviewRepository = require("./review.repository");
+const AppError = require("../../utils/AppError");
 
-class ReviewUseCase {
-  async createReview({ name, rating, comment }) {
-    if (!name || !comment) {
-      throw { status: 400, message: "Nama dan komentar wajib diisi" };
-    }
+const createReview = async ({ name, rating, comment }) => {
     const r = Number(rating);
-    if (!Number.isInteger(r) || r < 1 || r > 5) {
-      throw { status: 400, message: "Rating harus angka 1 sampai 5" };
-    }
 
-    const cleanName = String(name).trim().slice(0, 50);
-    const cleanComment = String(comment).trim().slice(0, 500);
-
-    if (!cleanName || !cleanComment) {
-      throw { status: 400, message: "Nama dan komentar tidak boleh kosong" };
-    }
+    const cleanName = String(name).trim();
+    const cleanComment = String(comment).trim();
 
     return reviewRepository.createReview({
       name: cleanName,
@@ -23,10 +13,9 @@ class ReviewUseCase {
       comment: cleanComment
     });
   }
-
-  async listReviews() {
+const listReviews = async () => {
     return reviewRepository.listReviews();
   }
-}
 
-module.exports = new ReviewUseCase();
+module.exports = { createReview, listReviews };
+

@@ -1,79 +1,60 @@
 const usecase = require("./auth.usecase");
+const catchAsync = require("../../utils/catchAsync");
+const { successResponse } = require("../../utils/response");
 
-async function register(req, res, next) {
-  try {
-    const data = await usecase.register(req.body);
-    res.status(201).json({ message: "Registrasi berhasil", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const register = catchAsync(async (req, res) => {
+  const data = await usecase.register(req.body);
+  successResponse(res, 201, "Registrasi berhasil", data);
+});
 
-async function login(req, res, next) {
-  try {
-    const data = await usecase.login(req.body);
+const login = catchAsync(async (req, res) => {
+  const data = await usecase.login(req.body);
 
-    res.cookie("token", data.token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, 
-      sameSite: "lax", 
-    });
+  res.cookie("token", data.token, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000, 
+    sameSite: "lax", 
+  });
 
-    const { token, ...responseData } = data;
+  const { token, ...responseData } = data;
+  successResponse(res, 200, "Login berhasil", responseData);
+});
 
-    res.json({ message: "Login berhasil", data: responseData });
-  } catch (err) {
-    next(err);
-  }
-}
+const selectRole = catchAsync(async (req, res) => {
+  const data = await usecase.selectRole({ userId: req.user.userId, role: req.body.role });
 
-async function selectRole(req, res, next) {
-  try {
-    const data = await usecase.selectRole({ userId: req.user.userId, role: req.body.role });
+  res.cookie("token", data.token, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: "lax",
+  });
 
-    res.cookie("token", data.token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "lax",
-    });
+  successResponse(res, 200, `Role ${data.activeRole} diaktifkan`, { activeRole: data.activeRole });
+});
 
-    res.json({ message: `Role ${data.activeRole} diaktifkan`, activeRole: data.activeRole });
-  } catch (err) {
-    next(err);
-  }
-}
+const addRole = catchAsync(async (req, res) => {
+  const data = await usecase.addRole({ userId: req.user.userId, role: req.body.role });
 
-async function addRole(req, res, next) {
-  try {
-    const data = await usecase.addRole({ userId: req.user.userId, role: req.body.role });
+  res.cookie("token", data.token, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: "lax",
+  });
 
-    res.cookie("token", data.token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "lax",
-    });
+  successResponse(res, 200, `Berhasil menambahkan peran ${data.activeRole}`, { activeRole: data.activeRole });
+});
 
-    res.json({ message: `Berhasil menambahkan peran ${data.activeRole}`, activeRole: data.activeRole });
-  } catch (err) {
-    next(err);
-  }
-}
+const me = catchAsync(async (req, res) => {
+  const profile = await usecase.getProfile(req.user.userId);
+  successResponse(res, 200, "Profile retrieved", {
+    profile,
+    activeRole: req.user.activeRole,
+  });
+});
 
-async function me(req, res, next) {
-  try {
-    const profile = await usecase.getProfile(req.user.userId);
-    res.json({
-      data: profile,
-      activeRole: req.user.activeRole,
-    });
-  } catch (err) {
-    next(err);
-  }
-}
-
-async function logout(req, res, next) {
+const logout = catchAsync(async (req, res) => {
   res.clearCookie("token");
-  res.json({ message: "Logout berhasil" });
-}
+  successResponse(res, 200, "Logout berhasil");
+});
 
 module.exports = { register, login, selectRole, addRole, me, logout };

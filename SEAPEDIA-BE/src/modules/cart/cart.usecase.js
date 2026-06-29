@@ -1,27 +1,23 @@
+const AppError = require("../../utils/AppError");
 const cartRepository = require("./cart.repository");
 
-class CartUseCase {
-  async getCart(buyerId) {
+const getCart = async (buyerId) => {
     let cart = await cartRepository.getCart(buyerId);
     if (!cart) {
       cart = await cartRepository.createCart(buyerId);
     }
     return cart;
   }
-
-  async addToCart(buyerId, productId, quantity, replaceStore = false) {
+const addToCart = async (buyerId, productId, quantity, replaceStore = false) => {
     const qty = Number(quantity);
-    if (isNaN(qty) || qty <= 0) {
-      throw { status: 400, message: "Kuantitas minimal 1" };
-    }
 
     const product = await cartRepository.findProduct(productId);
     if (!product) {
-      throw { status: 404, message: "Produk tidak ditemukan atau tidak aktif" };
+      throw new AppError("Produk tidak ditemukan atau tidak aktif", 404);
     }
 
     if (product.stock < qty) {
-      throw { status: 400, message: "Stok produk tidak mencukupi" };
+      throw new AppError("Stok produk tidak mencukupi", 400);
     }
 
     let cart = await cartRepository.getCart(buyerId);
@@ -50,47 +46,40 @@ class CartUseCase {
     if (existingItem) {
       const newQty = existingItem.quantity + qty;
       if (newQty > product.stock) {
-        throw { status: 400, message: "Total kuantitas melebihi stok yang tersedia" };
+        throw new AppError("Total kuantitas melebihi stok yang tersedia", 400);
       }
       await cartRepository.updateCartItemQuantity(existingItem.id, newQty);
     } else {
       await cartRepository.createCartItem(cart.id, productId, qty);
     }
-
-    return this.getCart(buyerId);
+    return getCart(buyerId);
   }
-
-  async updateCartItem(buyerId, itemId, quantity) {
+const updateCartItem = async (buyerId, itemId, quantity) => {
     const qty = Number(quantity);
-    if (isNaN(qty) || qty <= 0) {
-      throw { status: 400, message: "Kuantitas minimal 1" };
-    }
 
     const cart = await cartRepository.getCart(buyerId);
-    if (!cart) throw { status: 404, message: "Keranjang tidak ditemukan" };
+    if (!cart) throw new AppError("Keranjang tidak ditemukan", 404);
 
     const item = await cartRepository.getCartItemWithProduct(itemId);
 
     if (!item || item.cartId !== cart.id) {
-      throw { status: 404, message: "Item tidak ditemukan di keranjang" };
+      throw new AppError("Item tidak ditemukan di keranjang", 404);
     }
 
     if (item.product.stock < qty) {
-      throw { status: 400, message: "Stok produk tidak mencukupi" };
+      throw new AppError("Stok produk tidak mencukupi", 400);
     }
 
     await cartRepository.updateCartItemQuantity(itemId, qty);
-
-    return this.getCart(buyerId);
+    return getCart(buyerId);
   }
-
-  async removeCartItem(buyerId, itemId) {
+const removeCartItem = async (buyerId, itemId) => {
     const cart = await cartRepository.getCart(buyerId);
-    if (!cart) throw { status: 404, message: "Keranjang tidak ditemukan" };
+    if (!cart) throw new AppError("Keranjang tidak ditemukan", 404);
 
     const item = await cartRepository.getCartItemById(itemId);
     if (!item || item.cartId !== cart.id) {
-      throw { status: 404, message: "Item tidak ditemukan di keranjang" };
+      throw new AppError("Item tidak ditemukan di keranjang", 404);
     }
 
     await cartRepository.deleteCartItem(itemId);
@@ -99,18 +88,15 @@ class CartUseCase {
     if (remaining === 0) {
       await cartRepository.updateCartStore(cart.id, null);
     }
-
-    return this.getCart(buyerId);
+    return getCart(buyerId);
   }
-
-  async clearCart(buyerId) {
+const clearCart = async (buyerId) => {
     const cart = await cartRepository.getCart(buyerId);
     if (cart) {
       await cartRepository.clearCartItems(cart.id);
       await cartRepository.updateCartStore(cart.id, null);
-    }
-    return this.getCart(buyerId);
+    }    return getCart(buyerId);
   }
-}
 
-module.exports = new CartUseCase();
+module.exports = { getCart, addToCart, updateCartItem, removeCartItem, clearCart };
+

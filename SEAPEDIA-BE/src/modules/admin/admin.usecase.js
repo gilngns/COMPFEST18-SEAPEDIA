@@ -1,11 +1,8 @@
 const adminRepository = require("./admin.repository");
 const { getSimulatedDate } = require("../../utils/clock");
+const AppError = require("../../utils/AppError");
 
-class AdminUseCase {
-  async createVoucher({ code, description, amount, isPercent, expiryDate, remainingUsage }) {
-    if (!code || amount == null || !expiryDate || remainingUsage == null) {
-      throw { status: 400, message: "code, amount, expiryDate, remainingUsage wajib diisi" };
-    }
+const createVoucher = async ({ code, description, amount, isPercent, expiryDate, remainingUsage }) => {
 
     try {
       return await adminRepository.createVoucher({
@@ -17,15 +14,11 @@ class AdminUseCase {
         remainingUsage: Number(remainingUsage)
       });
     } catch (err) {
-      if (err.code === "P2002") throw { status: 400, message: "Kode voucher sudah ada" };
+      if (err.code === "P2002") throw new AppError("Kode voucher sudah ada", 400);
       throw err;
     }
   }
-
-  async createPromo({ code, description, amount, isPercent, expiryDate }) {
-    if (!code || amount == null || !expiryDate) {
-      throw { status: 400, message: "code, amount, expiryDate wajib diisi" };
-    }
+const createPromo = async ({ code, description, amount, isPercent, expiryDate }) => {
 
     try {
       return await adminRepository.createPromo({
@@ -36,28 +29,23 @@ class AdminUseCase {
         expiryDate: new Date(expiryDate)
       });
     } catch (err) {
-      if (err.code === "P2002") throw { status: 400, message: "Kode promo sudah ada" };
+      if (err.code === "P2002") throw new AppError("Kode promo sudah ada", 400);
       throw err;
     }
   }
-
-  async getVouchers() {
+const getVouchers = async () => {
     return await adminRepository.getVouchers();
   }
-
-  async getOrders() {
+const getOrders = async () => {
     return await adminRepository.getOrders();
   }
-
-  async getPromos() {
+const getPromos = async () => {
     return await adminRepository.getPromos();
   }
-
-  async getDashboardStats() {
+const getDashboardStats = async () => {
     return await adminRepository.getDashboardStats();
   }
-
-  async simulateNextDay() {
+const simulateNextDay = async () => {
     const clock = await adminRepository.incrementDayOffset();
     const simulatedNow = await getSimulatedDate();
     const refundedCount = await adminRepository.processOverdueOrders(simulatedNow);
@@ -68,6 +56,6 @@ class AdminUseCase {
       refundedCount
     };
   }
-}
 
-module.exports = new AdminUseCase();
+module.exports = { createVoucher, createPromo, getVouchers, getOrders, getPromos, getDashboardStats, simulateNextDay };
+

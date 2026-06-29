@@ -1,83 +1,53 @@
+const catchAsync = require("../../utils/catchAsync");
+const { successResponse } = require("../../utils/response");
 const usecase = require("./buyer.usecase");
 
 
 
-async function getWallet(req, res, next) {
-  try {
+const getWallet = catchAsync(async (req, res, next) => {
     const data = await usecase.getWallet(req.user.userId);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function topUpWallet(req, res, next) {
-  try {
+const topUpWallet = catchAsync(async (req, res, next) => {
     const { amount } = req.body;
     const data = await usecase.topUpWallet(req.user.userId, amount);
     res.json({ message: "Top-up berhasil", data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function getWalletTransactions(req, res, next) {
-  try {
+const getWalletTransactions = catchAsync(async (req, res, next) => {
     const data = await usecase.getWalletTransactions(req.user.userId);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
 
 
-async function getAddresses(req, res, next) {
-  try {
+const getAddresses = catchAsync(async (req, res, next) => {
     const data = await usecase.getAddresses(req.user.userId);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function addAddress(req, res, next) {
-  try {
+const addAddress = catchAsync(async (req, res, next) => {
     const data = await usecase.addAddress(req.user.userId, req.body);
     res.status(201).json({ message: "Alamat ditambahkan", data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function deleteAddress(req, res, next) {
-  try {
+const deleteAddress = catchAsync(async (req, res, next) => {
     await usecase.deleteAddress(req.user.userId, req.params.id);
     res.json({ message: "Alamat dihapus" });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function setDefaultAddress(req, res, next) {
-  try {
+const setDefaultAddress = catchAsync(async (req, res, next) => {
     const data = await usecase.setDefaultAddress(req.user.userId, req.params.id);
     res.json(data); 
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function submitReview(req, res, next) {
-  try {
+const submitReview = catchAsync(async (req, res, next) => {
     const { id } = req.params; 
     const { reviews } = req.body;
     const data = await usecase.submitReview(req.user.userId, id, reviews);
     res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
 module.exports = {
   getWallet,

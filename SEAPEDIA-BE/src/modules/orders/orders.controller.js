@@ -1,54 +1,36 @@
+const catchAsync = require("../../utils/catchAsync");
+const { successResponse } = require("../../utils/response");
 const usecase = require("./orders.usecase");
 
-async function previewCheckout(req, res, next) {
-  try {
+const previewCheckout = catchAsync(async (req, res, next) => {
     const discountCode = req.query.discountCode;
     const data = await usecase.previewCheckout(req.user.userId, discountCode);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function checkout(req, res, next) {
-  try {
+const checkout = catchAsync(async (req, res, next) => {
     const data = await usecase.checkout(req.user.userId, req.body);
     res.status(201).json({ message: "Checkout berhasil", data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function getMyOrders(req, res, next) {
-  try {
+const getMyOrders = catchAsync(async (req, res, next) => {
     const data = await usecase.getMyOrders(req.user.userId);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function getStoreOrders(req, res, next) {
-  try {
+const getStoreOrders = catchAsync(async (req, res, next) => {
     const data = await usecase.getStoreOrders(req.user.userId);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function updateOrderStatus(req, res, next) {
-  try {
+const updateOrderStatus = catchAsync(async (req, res, next) => {
     const data = await usecase.updateOrderStatus(
       req.user.userId,
       req.params.id,
       req.body.status
     );
     res.json({ message: "Status pesanan diperbarui", data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
 module.exports = {
   previewCheckout,

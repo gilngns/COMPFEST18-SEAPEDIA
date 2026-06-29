@@ -1,29 +1,24 @@
+const AppError = require("../../utils/AppError");
 const driverRepository = require("./driver.repository");
 
-class DriverUseCase {
-  async getDashboard(driverId) {
+const getDashboard = async (driverId) => {
     return driverRepository.getDashboardStats(driverId);
   }
-
-  async getAvailableJobs() {
+const getAvailableJobs = async () => {
     return driverRepository.getAvailableJobs();
   }
-
-  async getJobDetail(orderId) {
+const getJobDetail = async (orderId) => {
     return driverRepository.getJobDetail(orderId);
   }
-
-  async getMyDeliveries(driverId) {
+const getMyDeliveries = async (driverId) => {
     return driverRepository.getMyDeliveries(driverId);
   }
-
-  async takeJob(driverId, orderId) {
+const takeJob = async (driverId, orderId) => {
     return driverRepository.takeJob(driverId, orderId);
   }
-
-  async completeJob(driverId, orderId) {
+const completeJob = async (driverId, orderId) => {
     return driverRepository.completeJob(driverId, orderId);
   }
-}
 
-module.exports = new DriverUseCase();
+module.exports = { getDashboard, getAvailableJobs, getJobDetail, getMyDeliveries, takeJob, completeJob };
+

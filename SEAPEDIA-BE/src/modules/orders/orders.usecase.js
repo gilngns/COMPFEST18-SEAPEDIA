@@ -1,3 +1,4 @@
+const AppError = require("../../utils/AppError");
 const ordersRepository = require("./orders.repository");
 const discountUsecase = require("../discount/discount.usecase");
 
@@ -7,12 +8,11 @@ const DELIVERY_FEES = {
   REGULAR: 10000,
 };
 
-class OrdersUseCase {
-  async previewCheckout(buyerId, discountCode) {
+const previewCheckout = async (buyerId, discountCode) => {
     const cart = await ordersRepository.getCartForCheckout(buyerId);
 
     if (!cart || cart.items.length === 0) {
-      throw { status: 400, message: "Keranjang kosong" };
+      throw new AppError("Keranjang kosong", 400);
     }
 
     const subtotal = cart.items.reduce((acc, item) => acc + (Number(item.product.price) * item.quantity), 0);
@@ -52,24 +52,20 @@ class OrdersUseCase {
       }))
     };
   }
-
-  async checkout(buyerId, { addressId, deliveryMethod, discountCode }) {
-    if (!addressId) throw { status: 400, message: "Alamat pengiriman wajib dipilih" };
-    if (!DELIVERY_FEES[deliveryMethod]) throw { status: 400, message: "Metode pengiriman tidak valid" };
-
+const checkout = async (buyerId, { addressId, deliveryMethod, discountCode }) => {
     const cart = await ordersRepository.getCartForCheckout(buyerId);
 
     if (!cart || cart.items.length === 0) {
-      throw { status: 400, message: "Keranjang kosong" };
+      throw new AppError("Keranjang kosong", 400);
     }
 
     const address = await ordersRepository.getAddress(addressId);
     if (!address || address.userId !== buyerId) {
-      throw { status: 404, message: "Alamat tidak valid" };
+      throw new AppError("Alamat tidak valid", 404);
     }
 
     const wallet = await ordersRepository.getWallet(buyerId);
-    if (!wallet) throw { status: 400, message: "Wallet belum aktif" };
+    if (!wallet) throw new AppError("Wallet belum aktif", 400);
 
     const subtotal = cart.items.reduce((acc, item) => acc + (Number(item.product.price) * item.quantity), 0);
     
@@ -95,7 +91,7 @@ class OrdersUseCase {
     const total = subtotal - discountAmount + ppn + deliveryFee;
 
     if (Number(wallet.balance) < total) {
-      throw { status: 400, message: "Saldo wallet tidak mencukupi" };
+      throw new AppError("Saldo wallet tidak mencukupi", 400);
     }
 
     return ordersRepository.executeCheckoutTransaction({
@@ -113,30 +109,27 @@ class OrdersUseCase {
       promoId
     });
   }
-
-  async getMyOrders(buyerId) {
+const getMyOrders = async (buyerId) => {
     return ordersRepository.getMyOrders(buyerId);
   }
-
-  async getStoreOrders(sellerId) {
+const getStoreOrders = async (sellerId) => {
     const store = await ordersRepository.getStoreByOwner(sellerId);
-    if (!store) throw { status: 404, message: "Toko tidak ditemukan" };
+    if (!store) throw new AppError("Toko tidak ditemukan", 404);
 
     return ordersRepository.getStoreOrders(store.id);
   }
-
-  async updateOrderStatus(sellerId, orderId, status) {
+const updateOrderStatus = async (sellerId, orderId, status) => {
     const store = await ordersRepository.getStoreByOwner(sellerId);
-    if (!store) throw { status: 404, message: "Toko tidak ditemukan" };
+    if (!store) throw new AppError("Toko tidak ditemukan", 404);
     
     const order = await ordersRepository.getOrder(orderId);
 
     if (!order || order.storeId !== store.id) {
-      throw { status: 404, message: "Pesanan tidak ditemukan atau bukan milik toko Anda" };
+      throw new AppError("Pesanan tidak ditemukan atau bukan milik toko Anda", 404);
     }
 
     return ordersRepository.updateOrderStatusWithHistory(orderId, status);
   }
-}
 
-module.exports = new OrdersUseCase();
+module.exports = { previewCheckout, checkout, getMyOrders, getStoreOrders, updateOrderStatus };
+

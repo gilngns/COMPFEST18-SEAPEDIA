@@ -1,8 +1,7 @@
 const prisma = require("../../config/prisma");
 const { getSimulatedDate } = require("../../utils/clock");
 
-class OrdersRepository {
-  async getCartForCheckout(buyerId) {
+const getCartForCheckout = async (buyerId) => {
     return prisma.cart.findUnique({
       where: { buyerId },
       include: {
@@ -10,24 +9,19 @@ class OrdersRepository {
       }
     });
   }
-
-  async getAddress(addressId) {
+const getAddress = async (addressId) => {
     return prisma.address.findUnique({ where: { id: addressId } });
   }
-
-  async getWallet(buyerId) {
+const getWallet = async (buyerId) => {
     return prisma.wallet.findUnique({ where: { userId: buyerId } });
   }
-
-  async getStoreByOwner(sellerId) {
+const getStoreByOwner = async (sellerId) => {
     return prisma.store.findUnique({ where: { ownerId: sellerId } });
   }
-
-  async getOrder(orderId) {
+const getOrder = async (orderId) => {
     return prisma.order.findUnique({ where: { id: orderId } });
   }
-
-  async executeCheckoutTransaction({ buyerId, cart, addressId, subtotal, discountAmount, deliveryFee, ppn, total, deliveryMethod, walletId, voucherId, promoId }) {
+const executeCheckoutTransaction = async ({ buyerId, cart, addressId, subtotal, discountAmount, deliveryFee, ppn, total, deliveryMethod, walletId, voucherId, promoId }) => {
     const now = await getSimulatedDate();
     const slaDeadline = new Date(now);
     if (deliveryMethod === "INSTANT") {
@@ -110,8 +104,7 @@ class OrdersRepository {
       return order;
     });
   }
-
-  async getMyOrders(buyerId) {
+const getMyOrders = async (buyerId) => {
     return prisma.order.findMany({
       where: { buyerId },
       include: {
@@ -123,8 +116,7 @@ class OrdersRepository {
       orderBy: { createdAt: "desc" }
     });
   }
-
-  async getStoreOrders(storeId) {
+const getStoreOrders = async (storeId) => {
     return prisma.order.findMany({
       where: { storeId },
       include: {
@@ -135,8 +127,7 @@ class OrdersRepository {
       orderBy: { createdAt: "desc" }
     });
   }
-
-  async updateOrderStatusWithHistory(orderId, status) {
+const updateOrderStatusWithHistory = async (orderId, status) => {
     return prisma.$transaction(async (tx) => {
       const updated = await tx.order.update({
         where: { id: orderId },
@@ -154,6 +145,6 @@ class OrdersRepository {
       return updated;
     });
   }
-}
 
-module.exports = new OrdersRepository();
+module.exports = { getCartForCheckout, getAddress, getWallet, getStoreByOwner, getOrder, executeCheckoutTransaction, getMyOrders, getStoreOrders, updateOrderStatusWithHistory };
+

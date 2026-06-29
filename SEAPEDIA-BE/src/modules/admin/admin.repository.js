@@ -1,19 +1,15 @@
 const prisma = require("../../config/prisma");
 
-class AdminRepository {
-  async createVoucher(data) {
+const createVoucher = async (data) => {
     return prisma.voucher.create({ data });
   }
-
-  async createPromo(data) {
+const createPromo = async (data) => {
     return prisma.promo.create({ data });
   }
-
-  async getVouchers() {
+const getVouchers = async () => {
     return prisma.voucher.findMany({ orderBy: { createdAt: 'desc' } });
   }
-
-  async getOrders() {
+const getOrders = async () => {
     return prisma.order.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -27,12 +23,10 @@ class AdminRepository {
       }
     });
   }
-
-  async getPromos() {
+const getPromos = async () => {
     return prisma.promo.findMany({ orderBy: { createdAt: 'desc' } });
   }
-
-  async getDashboardStats() {
+const getDashboardStats = async () => {
     const [
       users,
       stores,
@@ -71,16 +65,14 @@ class AdminRepository {
       totalRevenue
     };
   }
-
-  async incrementDayOffset() {
+const incrementDayOffset = async () => {
     return prisma.systemClock.upsert({
       where: { id: 1 },
       update: { dayOffset: { increment: 1 } },
       create: { id: 1, dayOffset: 1 }
     });
   }
-
-  async processOverdueOrders(simulatedNow) {
+const processOverdueOrders = async (simulatedNow) => {
     const overdueOrders = await prisma.order.findMany({
       where: {
         slaDeadline: { lt: simulatedNow },
@@ -145,6 +137,6 @@ class AdminRepository {
 
     return refundedCount;
   }
-}
 
-module.exports = new AdminRepository();
+module.exports = { createVoucher, createPromo, getVouchers, getOrders, getPromos, getDashboardStats, incrementDayOffset, processOverdueOrders };
+

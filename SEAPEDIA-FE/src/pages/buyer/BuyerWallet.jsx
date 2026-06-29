@@ -74,7 +74,7 @@ export default function BuyerWallet() {
       });
       setTopUpAmount("");
       loadWallet();
-      setCurrentPage(1); // go back to first page to see the top up
+      setCurrentPage(1);
     } catch (err) {
       Swal.fire({ icon: "error", title: "Gagal", text: err.response?.data?.message || err.message || "Top up gagal" });
     } finally {

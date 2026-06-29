@@ -1,7 +1,6 @@
 const prisma = require("../../config/prisma");
 
-class CatalogRepository {
-  async findManyProducts({ search, categoryId, minPrice, maxPrice, sort, locations, rating, conditions, page = 1, limit = 8 }) {
+const findManyProducts = async ({ search, categoryId, minPrice, maxPrice, sort, locations, rating, conditions, page = 1, limit = 8 }) => {
     const where = { isActive: true, stock: { gt: 0 } };
 
     if (search) {
@@ -77,8 +76,7 @@ class CatalogRepository {
       totalItems: products.length
     };
   }
-
-  async findProductById(productId) {
+const findProductById = async (productId) => {
     return prisma.product.findUnique({
       where: { id: productId },
       select: {
@@ -103,6 +101,6 @@ class CatalogRepository {
       },
     });
   }
-}
 
-module.exports = new CatalogRepository();
+module.exports = { findManyProducts, findProductById };
+

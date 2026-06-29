@@ -1,20 +1,19 @@
+const AppError = require("../../utils/AppError");
 const catalogRepository = require("./catalog.repository");
 
-class CatalogUseCase {
-  async listProducts(filters = {}) {
+const listProducts = async (filters = {}) => {
     return catalogRepository.findManyProducts(filters);
   }
-
-  async getProduct(productId) {
+const getProduct = async (productId) => {
     const product = await catalogRepository.findProductById(productId);
     
     
     if (!product || !product.isActive) {
-      throw { status: 404, message: "Produk tidak ditemukan" };
+      throw new AppError("Produk tidak ditemukan", 404);
     }
     
     return product;
   }
-}
 
-module.exports = new CatalogUseCase();
+module.exports = { listProducts, getProduct };
+

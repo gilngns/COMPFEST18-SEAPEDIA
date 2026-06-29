@@ -1,66 +1,41 @@
 const usecase = require("./admin.usecase");
+const catchAsync = require("../../utils/catchAsync");
+const { successResponse } = require("../../utils/response");
 
-async function createVoucher(req, res, next) {
-  try {
-    const data = await usecase.createVoucher(req.body);
-    res.status(201).json({ message: "Voucher berhasil dibuat", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const createVoucher = catchAsync(async (req, res) => {
+  const data = await usecase.createVoucher(req.body);
+  successResponse(res, 201, "Voucher berhasil dibuat", data);
+});
 
-async function createPromo(req, res, next) {
-  try {
-    const data = await usecase.createPromo(req.body);
-    res.status(201).json({ message: "Promo berhasil dibuat", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const createPromo = catchAsync(async (req, res) => {
+  const data = await usecase.createPromo(req.body);
+  successResponse(res, 201, "Promo berhasil dibuat", data);
+});
 
-async function simulateDay(req, res, next) {
-  try {
-    const data = await usecase.simulateNextDay();
-    res.json({ message: "Simulasi hari berhasil ditambahkan", data });
-  } catch (err) {
-    next(err);
-  }
-}
-async function getVouchers(req, res, next) {
-  try {
-    const data = await usecase.getVouchers();
-    res.json({ message: "Berhasil mengambil data voucher", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const simulateDay = catchAsync(async (req, res) => {
+  const data = await usecase.simulateNextDay();
+  successResponse(res, 200, "Simulasi hari berhasil ditambahkan", data);
+});
 
-async function getPromos(req, res, next) {
-  try {
-    const data = await usecase.getPromos();
-    res.json({ message: "Berhasil mengambil data promo", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const getVouchers = catchAsync(async (req, res) => {
+  const data = await usecase.getVouchers();
+  successResponse(res, 200, "Berhasil mengambil data voucher", data);
+});
 
-async function getDashboardStats(req, res, next) {
-  try {
-    const data = await usecase.getDashboardStats();
-    res.json({ message: "Berhasil mengambil statistik dashboard", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const getPromos = catchAsync(async (req, res) => {
+  const data = await usecase.getPromos();
+  successResponse(res, 200, "Berhasil mengambil data promo", data);
+});
 
-async function getOrders(req, res, next) {
-  try {
-    const data = await usecase.getOrders();
-    res.json({ message: "Berhasil mengambil data pesanan", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const getDashboardStats = catchAsync(async (req, res) => {
+  const data = await usecase.getDashboardStats();
+  successResponse(res, 200, "Berhasil mengambil statistik dashboard", data);
+});
+
+const getOrders = catchAsync(async (req, res) => {
+  const data = await usecase.getOrders();
+  successResponse(res, 200, "Berhasil mengambil data pesanan", data);
+});
 
 module.exports = {
   createVoucher,

@@ -1,21 +1,15 @@
 const usecase = require("./review.usecase");
+const catchAsync = require("../../utils/catchAsync");
+const { successResponse } = require("../../utils/response");
 
-async function createReview(req, res, next) {
-  try {
-    const data = await usecase.createReview(req.body);
-    res.status(201).json({ success: true, message: "Ulasan berhasil dikirim", data });
-  } catch (err) {
-    next(err);
-  }
-}
+const createReview = catchAsync(async (req, res) => {
+  const data = await usecase.createReview(req.body);
+  successResponse(res, 201, "Ulasan berhasil dikirim", data);
+});
 
-async function listReviews(req, res, next) {
-  try {
-    const data = await usecase.listReviews();
-    res.json({ success: true, data });
-  } catch (err) {
-    next(err);
-  }
-}
+const listReviews = catchAsync(async (req, res) => {
+  const data = await usecase.listReviews();
+  successResponse(res, 200, "Berhasil mengambil ulasan", data);
+});
 
 module.exports = { createReview, listReviews };

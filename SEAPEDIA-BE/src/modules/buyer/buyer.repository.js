@@ -1,16 +1,12 @@
 const prisma = require("../../config/prisma");
 
-class BuyerRepository {
-  
-  async getWalletByUserId(userId) {
+const getWalletByUserId = async (userId) => {
     return prisma.wallet.findUnique({ where: { userId } });
   }
-
-  async createWallet(userId) {
+const createWallet = async (userId) => {
     return prisma.wallet.create({ data: { userId, balance: 0 } });
   }
-
-  async topUpTransaction(walletId, amountNum) {
+const topUpTransaction = async (walletId, amountNum) => {
     return prisma.$transaction(async (tx) => {
       const updatedWallet = await tx.wallet.update({
         where: { id: walletId },
@@ -29,8 +25,7 @@ class BuyerRepository {
       return updatedWallet;
     });
   }
-
-  async withdrawTransaction(walletId, amountNum) {
+const withdrawTransaction = async (walletId, amountNum) => {
     return prisma.$transaction(async (tx) => {
       const wallet = await tx.wallet.findUnique({ where: { id: walletId } });
       if (!wallet || wallet.balance < amountNum) {
@@ -54,42 +49,34 @@ class BuyerRepository {
       return updatedWallet;
     });
   }
-
-  async getWalletTransactions(walletId) {
+const getWalletTransactions = async (walletId) => {
     return prisma.walletTransaction.findMany({
       where: { walletId },
       orderBy: { createdAt: "desc" }
     });
   }
-
-  
-  async getAddressesByUserId(userId) {
+const getAddressesByUserId = async (userId) => {
     return prisma.address.findMany({
       where: { userId },
       orderBy: { isDefault: "desc" }
     });
   }
-
-  async unsetDefaultAddress(userId) {
+const unsetDefaultAddress = async (userId) => {
     return prisma.address.updateMany({
       where: { userId },
       data: { isDefault: false }
     });
   }
-
-  async createAddress(data) {
+const createAddress = async (data) => {
     return prisma.address.create({ data });
   }
-
-  async getAddressById(id) {
+const getAddressById = async (id) => {
     return prisma.address.findUnique({ where: { id } });
   }
-
-  async deleteAddress(id) {
+const deleteAddress = async (id) => {
     return prisma.address.delete({ where: { id } });
   }
-
-  async setDefaultAddressTransaction(userId, addressId) {
+const setDefaultAddressTransaction = async (userId, addressId) => {
     return prisma.$transaction([
       prisma.address.updateMany({
         where: { userId },
@@ -101,17 +88,17 @@ class BuyerRepository {
       })
     ]);
   }
-  async createProductReviews(reviewsData) {
+const createProductReviews = async (reviewsData) => {
     return prisma.productReview.createMany({
       data: reviewsData
     });
   }
-  async getOrderByIdAndBuyer(orderId, buyerId) {
+const getOrderByIdAndBuyer = async (orderId, buyerId) => {
     return prisma.order.findFirst({
       where: { id: orderId, buyerId },
       include: { items: true }
     });
   }
-}
 
-module.exports = new BuyerRepository();
+module.exports = { getWalletByUserId, createWallet, topUpTransaction, withdrawTransaction, getWalletTransactions, getAddressesByUserId, unsetDefaultAddress, createAddress, getAddressById, deleteAddress, setDefaultAddressTransaction, createProductReviews, getOrderByIdAndBuyer };
+

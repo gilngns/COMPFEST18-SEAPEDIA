@@ -1,58 +1,36 @@
+const catchAsync = require("../../utils/catchAsync");
+const { successResponse } = require("../../utils/response");
 const usecase = require("./driver.usecase");
 
-async function getDashboard(req, res, next) {
-  try {
+const getDashboard = catchAsync(async (req, res, next) => {
     const data = await usecase.getDashboard(req.user.userId);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function getAvailableJobs(req, res, next) {
-  try {
+const getAvailableJobs = catchAsync(async (req, res, next) => {
     const data = await usecase.getAvailableJobs();
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function getJobDetail(req, res, next) {
-  try {
+const getJobDetail = catchAsync(async (req, res, next) => {
     const data = await usecase.getJobDetail(req.params.id);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function getMyDeliveries(req, res, next) {
-  try {
+const getMyDeliveries = catchAsync(async (req, res, next) => {
     const data = await usecase.getMyDeliveries(req.user.userId);
     res.json({ data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function takeJob(req, res, next) {
-  try {
+const takeJob = catchAsync(async (req, res, next) => {
     const data = await usecase.takeJob(req.user.userId, req.params.id);
     res.json({ message: "Pesanan berhasil diambil", data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
-async function completeJob(req, res, next) {
-  try {
+const completeJob = catchAsync(async (req, res, next) => {
     const data = await usecase.completeJob(req.user.userId, req.params.id);
     res.json({ message: "Pengiriman berhasil diselesaikan", data });
-  } catch (err) {
-    next(err);
-  }
-}
+  });
 
 module.exports = {
   getDashboard,

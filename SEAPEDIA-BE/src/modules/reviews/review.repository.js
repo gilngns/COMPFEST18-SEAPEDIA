@@ -1,17 +1,15 @@
 const prisma = require("../../config/prisma");
 
-class ReviewRepository {
-  async createReview(data) {
+const createReview = async (data) => {
     return prisma.appReview.create({
       data,
     });
   }
-
-  async listReviews() {
+const listReviews = async () => {
     return prisma.appReview.findMany({
       orderBy: { createdAt: "desc" },
     });
   }
-}
 
-module.exports = new ReviewRepository();
+module.exports = { createReview, listReviews };
+

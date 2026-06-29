@@ -1,15 +1,13 @@
+const AppError = require("../../utils/AppError");
 const discountRepository = require("./discount.repository");
 
-class DiscountUseCase {
-  async listAvailableDiscounts() {
+const listAvailableDiscounts = async () => {
     const vouchers = await discountRepository.listVouchers();
     const promos = await discountRepository.listPromos();
 
     return { vouchers, promos };
   }
-
-  async validateDiscount(code) {
-    if (!code) throw { status: 400, message: "Kode diskon wajib diisi" };
+const validateDiscount = async (code) => {
 
     const cCode = code.trim().toUpperCase();
 
@@ -17,10 +15,10 @@ class DiscountUseCase {
     const voucher = await discountRepository.getVoucherByCode(cCode);
     if (voucher) {
       if (new Date(voucher.expiryDate) < new Date()) {
-        throw { status: 400, message: "Voucher sudah kedaluwarsa" };
+        throw new AppError("Voucher sudah kedaluwarsa", 400);
       }
       if (voucher.remainingUsage <= 0) {
-        throw { status: 400, message: "Batas pemakaian voucher sudah habis" };
+        throw new AppError("Batas pemakaian voucher sudah habis", 400);
       }
       return { type: "VOUCHER", data: voucher };
     }
@@ -29,13 +27,13 @@ class DiscountUseCase {
     const promo = await discountRepository.getPromoByCode(cCode);
     if (promo) {
       if (new Date(promo.expiryDate) < new Date()) {
-        throw { status: 400, message: "Promo sudah kedaluwarsa" };
+        throw new AppError("Promo sudah kedaluwarsa", 400);
       }
       return { type: "PROMO", data: promo };
     }
 
-    throw { status: 404, message: "Kode diskon tidak valid atau tidak ditemukan" };
+    throw new AppError("Kode diskon tidak valid atau tidak ditemukan", 404);
   }
-}
 
-module.exports = new DiscountUseCase();
+module.exports = { listAvailableDiscounts, validateDiscount };
+

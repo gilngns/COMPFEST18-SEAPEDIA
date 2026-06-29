@@ -1,7 +1,6 @@
 const prisma = require("../../config/prisma");
 
-class CartRepository {
-  async getCart(buyerId) {
+const getCart = async (buyerId) => {
     return prisma.cart.findUnique({
       where: { buyerId },
       include: {
@@ -25,46 +24,39 @@ class CartRepository {
       }
     });
   }
-
-  async createCart(buyerId) {
+const createCart = async (buyerId) => {
     return prisma.cart.create({
       data: { buyerId },
       include: { items: true }
     });
   }
-
-  async findProduct(productId) {
+const findProduct = async (productId) => {
     return prisma.product.findUnique({
       where: { id: productId, isActive: true },
       include: { store: true }
     });
   }
-
-  async clearCartItems(cartId) {
+const clearCartItems = async (cartId) => {
     return prisma.cartItem.deleteMany({ where: { cartId } });
   }
-
-  async updateCartStore(cartId, storeId) {
+const updateCartStore = async (cartId, storeId) => {
     return prisma.cart.update({
       where: { id: cartId },
       data: { storeId }
     });
   }
-
-  async findCartItem(cartId, productId) {
+const findCartItem = async (cartId, productId) => {
     return prisma.cartItem.findUnique({
       where: { cartId_productId: { cartId, productId } }
     });
   }
-
-  async updateCartItemQuantity(itemId, quantity) {
+const updateCartItemQuantity = async (itemId, quantity) => {
     return prisma.cartItem.update({
       where: { id: itemId },
       data: { quantity }
     });
   }
-
-  async createCartItem(cartId, productId, quantity) {
+const createCartItem = async (cartId, productId, quantity) => {
     return prisma.cartItem.create({
       data: {
         cartId,
@@ -73,25 +65,21 @@ class CartRepository {
       }
     });
   }
-
-  async getCartItemWithProduct(itemId) {
+const getCartItemWithProduct = async (itemId) => {
     return prisma.cartItem.findUnique({
       where: { id: itemId },
       include: { product: true }
     });
   }
-
-  async getCartItemById(itemId) {
+const getCartItemById = async (itemId) => {
     return prisma.cartItem.findUnique({ where: { id: itemId } });
   }
-
-  async deleteCartItem(itemId) {
+const deleteCartItem = async (itemId) => {
     return prisma.cartItem.delete({ where: { id: itemId } });
   }
-
-  async countCartItems(cartId) {
+const countCartItems = async (cartId) => {
     return prisma.cartItem.count({ where: { cartId } });
   }
-}
 
-module.exports = new CartRepository();
+module.exports = { getCart, createCart, findProduct, clearCartItems, updateCartStore, findCartItem, updateCartItemQuantity, createCartItem, getCartItemWithProduct, getCartItemById, deleteCartItem, countCartItems };
+

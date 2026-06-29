@@ -1,53 +1,24 @@
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const swaggerUi = require("swagger-ui-express");
-const YAML = require("yamljs");
 const path = require("path");
+const { notFoundMiddleware, globalErrorMiddleware } = require("./middlewares/error.middleware");
+const routes = require("./routes");
 
 const app = express();
+
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
 
-const swaggerDocument = YAML.load(path.join(__dirname, "../swagger.yaml"));
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
-app.get("/", (req, res) => {
-  res.json({ message: "SEAPEDIA API jalan 🚀" });
-});
 
-app.use("/api/auth", require("./modules/auth/auth.routes"));
-app.use("/api/reviews", require("./modules/reviews/review.routes"));
-app.use("/api/seller", require("./modules/seller/seller.routes"));
-app.use("/api/catalog", require("./modules/catalog/catalog.routes")); 
-app.use("/api/buyer", require("./modules/buyer/buyer.routes")); 
-app.use("/api/cart", require("./modules/cart/cart.routes")); 
-app.use("/api/orders", require("./modules/orders/orders.routes")); 
-app.use("/api/categories", require("./modules/category/category.routes")); 
-app.use("/api/admin", require("./modules/admin/admin.routes"));
-app.use("/api/discount", require("./modules/discount/discount.routes"));
-app.use("/api/driver", require("./modules/driver/driver.routes"));
+app.use("/", routes);
 
-app.use((req, res) => {
-  res.status(404).json({ error: "Endpoint tidak ditemukan" });
-});
-
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    error: err.message || "Internal server error",
-  });
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server jalan di http://localhost:${PORT}`);
-});
+app.use(notFoundMiddleware);
+app.use(globalErrorMiddleware);
 
 module.exports = app;

@@ -72,7 +72,7 @@ export default function BuyerOrders() {
     loadOrders();
   }, [loadOrders]);
 
-  // Filtering
+
   const filteredOrders = orders.filter((order) => {
     const query = searchQuery.toLowerCase();
     const invoiceMatch = order.id.toLowerCase().includes(query);
@@ -82,7 +82,7 @@ export default function BuyerOrders() {
     return invoiceMatch || productMatch;
   });
 
-  // Pagination
+
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
@@ -94,7 +94,7 @@ export default function BuyerOrders() {
     }
   };
 
-  // Reset page to 1 when search changes
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);

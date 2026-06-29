@@ -1,40 +1,29 @@
+const AppError = require("../../utils/AppError");
 const buyerRepository = require("./buyer.repository");
 const xss = require("xss");
 
-class BuyerUseCase {
-  
-  async getWallet(userId) {
+const getWallet = async (userId) => {
     let wallet = await buyerRepository.getWalletByUserId(userId);
     if (!wallet) {
       wallet = await buyerRepository.createWallet(userId);
     }
     return wallet;
   }
-
-  async topUpWallet(userId, amount) {
+const topUpWallet = async (userId, amount) => {
     const amountNum = Number(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      throw { status: 400, message: "Nominal top-up harus lebih dari 0" };
-    }
 
-    const wallet = await this.getWallet(userId);
+
+    const wallet = await getWallet(userId);
     return buyerRepository.topUpTransaction(wallet.id, amountNum);
   }
-
-  async getWalletTransactions(userId) {
-    const wallet = await this.getWallet(userId);
+const getWalletTransactions = async (userId) => {
+    const wallet = await getWallet(userId);
     return buyerRepository.getWalletTransactions(wallet.id);
   }
-
-  
-  async getAddresses(userId) {
+const getAddresses = async (userId) => {
     return buyerRepository.getAddressesByUserId(userId);
   }
-
-  async addAddress(userId, { label, recipient, phone, detail, isDefault }) {
-    if (!label || !recipient || !phone || !detail) {
-      throw { status: 400, message: "Semua kolom alamat wajib diisi" };
-    }
+const addAddress = async (userId, { label, recipient, phone, detail, isDefault }) => {
 
     if (isDefault) {
       await buyerRepository.unsetDefaultAddress(userId);
@@ -49,31 +38,29 @@ class BuyerUseCase {
       isDefault: Boolean(isDefault)
     });
   }
-
-  async deleteAddress(userId, addressId) {
+const deleteAddress = async (userId, addressId) => {
     const address = await buyerRepository.getAddressById(addressId);
-    if (!address) throw { status: 404, message: "Alamat tidak ditemukan" };
-    if (address.userId !== userId) throw { status: 403, message: "Bukan alamat Anda" };
+    if (!address) throw new AppError("Alamat tidak ditemukan", 404);
+    if (address.userId !== userId) throw new AppError("Bukan alamat Anda", 403);
 
     return buyerRepository.deleteAddress(addressId);
   }
-
-  async setDefaultAddress(userId, addressId) {
+const setDefaultAddress = async (userId, addressId) => {
     const address = await buyerRepository.getAddressById(addressId);
-    if (!address) throw { status: 404, message: "Alamat tidak ditemukan" };
-    if (address.userId !== userId) throw { status: 403, message: "Bukan alamat Anda" };
+    if (!address) throw new AppError("Alamat tidak ditemukan", 404);
+    if (address.userId !== userId) throw new AppError("Bukan alamat Anda", 403);
 
     await buyerRepository.setDefaultAddressTransaction(userId, addressId);
 
     return { message: "Alamat utama berhasil diubah" };
   }
-  async submitReview(userId, orderId, reviews) {
+const submitReview = async (userId, orderId, reviews) => {
     const order = await buyerRepository.getOrderByIdAndBuyer(orderId, userId);
     if (!order) {
-      throw { status: 404, message: "Pesanan tidak ditemukan" };
+      throw new AppError("Pesanan tidak ditemukan", 404);
     }
     if (order.status !== "PESANAN_SELESAI") {
-      throw { status: 400, message: "Pesanan belum selesai, tidak dapat memberikan ulasan" };
+      throw new AppError("Pesanan belum selesai, tidak dapat memberikan ulasan", 400);
     }
 
     const orderProductIds = order.items.map(item => item.productId);
@@ -81,10 +68,7 @@ class BuyerUseCase {
 
     for (const review of reviews) {
       if (!orderProductIds.includes(review.productId)) {
-        throw { status: 400, message: `Produk dengan ID ${review.productId} tidak ada dalam pesanan ini` };
-      }
-      if (!review.rating || review.rating < 1 || review.rating > 5) {
-        throw { status: 400, message: "Rating harus antara 1 sampai 5" };
+        throw new AppError(`Produk dengan ID ${review.productId} tidak ada dalam pesanan ini`, 400);
       }
 
       reviewsData.push({
@@ -101,11 +85,11 @@ class BuyerUseCase {
       return { message: "Ulasan berhasil disimpan" };
     } catch (error) {
       if (error.code === 'P2002') {
-        throw { status: 400, message: "Anda sudah memberikan ulasan untuk produk dalam pesanan ini" };
+        throw new AppError("Anda sudah memberikan ulasan untuk produk dalam pesanan ini", 400);
       }
       throw error;
     }
   }
-}
 
-module.exports = new BuyerUseCase();
+module.exports = { getWallet, topUpWallet, getWalletTransactions, getAddresses, addAddress, deleteAddress, setDefaultAddress, submitReview };
+

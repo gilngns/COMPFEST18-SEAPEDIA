@@ -1,7 +1,8 @@
+const catchAsync = require("../../utils/catchAsync");
+const { successResponse } = require("../../utils/response");
 const usecase = require("./catalog.usecase");
 
-async function list(req, res, next) {
-  try {
+const list = catchAsync(async (req, res, next) => {
     const result = await usecase.listProducts({ 
       search: req.query.search,
       categoryId: req.query.categoryId,
@@ -20,14 +21,11 @@ async function list(req, res, next) {
       currentPage: result.currentPage,
       totalItems: result.totalItems
     });
-  } catch (err) { next(err); }
-}
+  });
 
-async function detail(req, res, next) {
-  try {
+const detail = catchAsync(async (req, res, next) => {
     const product = await usecase.getProduct(req.params.id);
     res.json({ data: product });
-  } catch (err) { next(err); }
-}
+  });
 
 module.exports = { list, detail };

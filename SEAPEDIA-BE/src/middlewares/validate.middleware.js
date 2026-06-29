@@ -3,8 +3,16 @@ const { ZodError } = require("zod");
 function validate(schema) {
   return (req, res, next) => {
     try {
-      const parsedBody = schema.parse(req.body);
-      req.body = parsedBody; 
+      if (schema.body) {
+        req.body = schema.body.parse(req.body);
+      }
+      if (schema.query) {
+        req.query = schema.query.parse(req.query);
+      }
+      if (schema.params) {
+        req.params = schema.params.parse(req.params);
+      }
+      
       next();
     } catch (error) {
       if (error instanceof ZodError) {

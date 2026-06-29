@@ -1,31 +1,13 @@
 const router = require("express").Router();
-const { z } = require("zod");
 const controller = require("./auth.controller");
 const validate = require("../../middlewares/validate.middleware");
 const { authRequired } = require("../../middlewares/auth.middleware");
+const schemas = require("./auth.validation");
 
-const registerSchema = z.object({
-  username: z.string().min(3, "Username minimal 3 karakter"),
-  email: z.string().email("Format email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
-  roles: z.array(z.enum(["BUYER", "SELLER", "DRIVER"])).min(1, "Pilih minimal satu peran"),
-});
-
-const loginSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
-  password: z.string().min(1, "Kata sandi harus diisi"),
-});
-
-const selectRoleSchema = z.object({
-  role: z.enum(["BUYER", "SELLER", "DRIVER"], {
-    errorMap: () => ({ message: "Peran tidak valid" }),
-  }),
-});
-
-router.post("/register", validate(registerSchema), controller.register);
-router.post("/login", validate(loginSchema), controller.login);
-router.post("/select-role", authRequired, validate(selectRoleSchema), controller.selectRole);
-router.post("/add-role", authRequired, validate(selectRoleSchema), controller.addRole);
+router.post("/register", validate(schemas.registerSchema), controller.register);
+router.post("/login", validate(schemas.loginSchema), controller.login);
+router.post("/select-role", authRequired, validate(schemas.selectRoleSchema), controller.selectRole);
+router.post("/add-role", authRequired, validate(schemas.addRoleSchema), controller.addRole);
 router.get("/me", authRequired, controller.me);
 router.post("/logout", controller.logout);
 

@@ -1,9 +1,9 @@
+const AppError = require("../../utils/AppError");
 const categoryRepository = require("./category.repository");
 
-class CategoryUseCase {
-    async getCategories() {
+const getCategories = async () => {
         return await categoryRepository.getCategories();
     }
-}
 
-module.exports = new CategoryUseCase();
+module.exports = { getCategories };
+

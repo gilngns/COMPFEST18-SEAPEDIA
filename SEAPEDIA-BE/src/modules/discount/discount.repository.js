@@ -1,15 +1,12 @@
 const prisma = require("../../config/prisma");
 
-class DiscountRepository {
-  async getVoucherByCode(code) {
+const getVoucherByCode = async (code) => {
     return prisma.voucher.findUnique({ where: { code } });
   }
-
-  async getPromoByCode(code) {
+const getPromoByCode = async (code) => {
     return prisma.promo.findUnique({ where: { code } });
   }
-
-  async listVouchers() {
+const listVouchers = async () => {
     return prisma.voucher.findMany({
       where: {
         expiryDate: { gt: new Date() },
@@ -17,14 +14,13 @@ class DiscountRepository {
       }
     });
   }
-
-  async listPromos() {
+const listPromos = async () => {
     return prisma.promo.findMany({
       where: {
         expiryDate: { gt: new Date() }
       }
     });
   }
-}
 
-module.exports = new DiscountRepository();
+module.exports = { getVoucherByCode, getPromoByCode, listVouchers, listPromos };
+

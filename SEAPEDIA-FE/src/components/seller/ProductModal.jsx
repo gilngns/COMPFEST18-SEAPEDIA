@@ -19,7 +19,7 @@ export default function ProductModal({ product, onClose, onSaved }) {
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
 
-  // kalau edit, isi form dengan data produk
+
   useEffect(() => {
     if (product) {
       setForm({

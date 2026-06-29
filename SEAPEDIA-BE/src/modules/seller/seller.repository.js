@@ -1,39 +1,32 @@
 const prisma = require("../../config/prisma");
 
-class SellerRepository {
-  async findStoreByName(name) {
+const findStoreByName = async (name) => {
     return prisma.store.findUnique({ where: { name } });
   }
-
-  async findStoreByDomain(domain) {
+const findStoreByDomain = async (domain) => {
     return prisma.store.findUnique({ where: { domain } });
   }
-
-  async findStoreByOwner(ownerId) {
+const findStoreByOwner = async (ownerId) => {
     return prisma.store.findUnique({ where: { ownerId } });
   }
-
-  async updateStore(ownerId, data) {
+const updateStore = async (ownerId, data) => {
     return prisma.store.update({
       where: { ownerId },
       data,
     });
   }
-
-  async createStore(ownerId, data) {
+const createStore = async (ownerId, data) => {
     return prisma.store.create({
       data: { ...data, ownerId },
     });
   }
-
-  async getMyStoreWithCount(ownerId) {
+const getMyStoreWithCount = async (ownerId) => {
     return prisma.store.findUnique({
       where: { ownerId },
       include: { _count: { select: { products: true } } },
     });
   }
-
-  async getPublicStore(storeId) {
+const getPublicStore = async (storeId) => {
     return prisma.store.findUnique({
       where: { id: storeId },
       select: {
@@ -45,35 +38,30 @@ class SellerRepository {
       },
     });
   }
-
-  async createProduct(data) {
+const createProduct = async (data) => {
     return prisma.product.create({ data });
   }
-
-  async listProductsByStore(storeId) {
+const listProductsByStore = async (storeId) => {
     return prisma.product.findMany({
       where: { storeId },
       orderBy: { createdAt: "desc" },
     });
   }
-
-  async findProductById(productId) {
+const findProductById = async (productId) => {
     return prisma.product.findUnique({ where: { id: productId } });
   }
-
-  async updateProduct(productId, data) {
+const updateProduct = async (productId, data) => {
     return prisma.product.update({
       where: { id: productId },
       data,
     });
   }
-
-  async deactivateProduct(productId) {
+const deactivateProduct = async (productId) => {
     return prisma.product.update({
       where: { id: productId },
       data: { isActive: false },
     });
   }
-}
 
-module.exports = new SellerRepository();
+module.exports = { findStoreByName, findStoreByDomain, findStoreByOwner, updateStore, createStore, getMyStoreWithCount, getPublicStore, createProduct, listProductsByStore, findProductById, updateProduct, deactivateProduct };
+

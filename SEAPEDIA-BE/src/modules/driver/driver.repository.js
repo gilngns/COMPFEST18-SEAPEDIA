@@ -1,7 +1,6 @@
 const prisma = require("../../config/prisma");
 
-class DriverRepository {
-  async getDashboardStats(driverId) {
+const getDashboardStats = async (driverId) => {
     const deliveries = await prisma.delivery.findMany({
       where: { driverId }
     });
@@ -25,8 +24,7 @@ class DriverRepository {
       walletBalance: wallet ? Number(wallet.balance) : 0
     };
   }
-
-  async getAvailableJobs() {
+const getAvailableJobs = async () => {
     return prisma.order.findMany({
       where: {
         status: "MENUNGGU_PENGIRIM",
@@ -40,8 +38,7 @@ class DriverRepository {
       orderBy: { createdAt: "desc" }
     });
   }
-
-  async getJobDetail(orderId) {
+const getJobDetail = async (orderId) => {
     const job = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -57,8 +54,7 @@ class DriverRepository {
 
     return job;
   }
-
-  async getMyDeliveries(driverId) {
+const getMyDeliveries = async (driverId) => {
     return prisma.delivery.findMany({
       where: { driverId },
       include: {
@@ -73,8 +69,7 @@ class DriverRepository {
       orderBy: { createdAt: "desc" }
     });
   }
-
-  async takeJob(driverId, orderId) {
+const takeJob = async (driverId, orderId) => {
     return prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({ where: { id: orderId } });
       if (!order || order.status !== "MENUNGGU_PENGIRIM") {
@@ -111,8 +106,7 @@ class DriverRepository {
       return delivery;
     });
   }
-
-  async completeJob(driverId, orderId) {
+const completeJob = async (driverId, orderId) => {
     return prisma.$transaction(async (tx) => {
       const delivery = await tx.delivery.findUnique({
         where: { orderId },
@@ -193,6 +187,6 @@ class DriverRepository {
       return delivery;
     });
   }
-}
 
-module.exports = new DriverRepository();
+module.exports = { getDashboardStats, getAvailableJobs, getJobDetail, getMyDeliveries, takeJob, completeJob };
+

@@ -1,24 +1,21 @@
+const AppError = require("../../utils/AppError");
 const sellerRepository = require("./seller.repository");
 const buyerRepository = require("../buyer/buyer.repository");
 const xss = require("xss");
 
-class SellerUseCase {
-  async upsertStore(userId, { name, description, domain, slogan, logoUrl, isOpen, city, address }) {
-    if (!name || !name.trim()) {
-      throw { status: 400, message: "Nama toko wajib diisi" };
-    }
+const upsertStore = async (userId, { name, description, domain, slogan, logoUrl, isOpen, city, address }) => {
     const cleanName = name.trim();
     const cleanDomain = domain?.trim() || null;
 
     const existing = await sellerRepository.findStoreByName(cleanName);
     if (existing && existing.ownerId !== userId) {
-      throw { status: 409, message: "Nama toko sudah digunakan" };
+      throw new AppError("Nama toko sudah digunakan", 409);
     }
     
     if (cleanDomain) {
       const existingDomain = await sellerRepository.findStoreByDomain(cleanDomain);
       if (existingDomain && existingDomain.ownerId !== userId) {
-        throw { status: 409, message: "Domain toko sudah digunakan" };
+        throw new AppError("Domain toko sudah digunakan", 409);
       }
     }
 
@@ -40,35 +37,22 @@ class SellerUseCase {
     }
     return sellerRepository.createStore(userId, data);
   }
-
-  async getMyStore(userId) {
+const getMyStore = async (userId) => {
     return sellerRepository.getMyStoreWithCount(userId);
   }
-
-  async getPublicStore(storeId) {
+const getPublicStore = async (storeId) => {
     const store = await sellerRepository.getPublicStore(storeId);
-    if (!store) throw { status: 404, message: "Toko tidak ditemukan" };
+    if (!store) throw new AppError("Toko tidak ditemukan", 404);
     return store;
   }
-
-  
-  async requireStore(userId) {
+const requireStore = async (userId) => {
     const store = await sellerRepository.findStoreByOwner(userId);
-    if (!store) throw { status: 400, message: "Buat toko dulu sebelum menambah produk" };
+    if (!store) throw new AppError("Buat toko dulu sebelum menambah produk", 400);
     return store;
   }
 
-  validateProductInput({ name, price, stock }) {
-    if (!name || !String(name).trim()) throw { status: 400, message: "Nama produk wajib diisi" };
-    const p = Number(price);
-    if (isNaN(p) || p < 0) throw { status: 400, message: "Harga harus angka >= 0" };
-    const s = Number(stock);
-    if (!Number.isInteger(s) || s < 0) throw { status: 400, message: "Stok harus bilangan bulat >= 0" };
-  }
-
-  async createProduct(userId, body) {
-    const store = await this.requireStore(userId);
-    this.validateProductInput(body);
+const createProduct = async (userId, body) => {
+    const store = await requireStore(userId);
     return sellerRepository.createProduct({
       storeId: store.id,
       name: xss(body.name.trim()),
@@ -79,23 +63,15 @@ class SellerUseCase {
       images: body.images || [],
     });
   }
-
-  async listMyProducts(userId) {
-    const store = await this.requireStore(userId);
+const listMyProducts = async (userId) => {
+    const store = await requireStore(userId);
     return sellerRepository.listProductsByStore(store.id);
   }
-
-  async updateProduct(userId, productId, body) {
-    const store = await this.requireStore(userId);
+const updateProduct = async (userId, productId, body) => {
+    const store = await requireStore(userId);
     const product = await sellerRepository.findProductById(productId);
-    if (!product) throw { status: 404, message: "Produk tidak ditemukan" };
-    if (product.storeId !== store.id) throw { status: 403, message: "Ini bukan produk toko kamu" };
-
-    this.validateProductInput({
-      name: body.name ?? product.name,
-      price: body.price ?? product.price,
-      stock: body.stock ?? product.stock,
-    });
+    if (!product) throw new AppError("Produk tidak ditemukan", 404);
+    if (product.storeId !== store.id) throw new AppError("Ini bukan produk toko kamu", 403);
 
     return sellerRepository.updateProduct(productId, {
       name: body.name ? xss(body.name.trim()) : product.name,
@@ -107,37 +83,32 @@ class SellerUseCase {
       images: body.images !== undefined ? body.images : product.images,
     });
   }
-
-  async deleteProduct(userId, productId) {
-    const store = await this.requireStore(userId);
+const deleteProduct = async (userId, productId) => {
+    const store = await requireStore(userId);
     const product = await sellerRepository.findProductById(productId);
-    if (!product) throw { status: 404, message: "Produk tidak ditemukan" };
-    if (product.storeId !== store.id) throw { status: 403, message: "Ini bukan produk toko kamu" };
+    if (!product) throw new AppError("Produk tidak ditemukan", 404);
+    if (product.storeId !== store.id) throw new AppError("Ini bukan produk toko kamu", 403);
 
     return sellerRepository.deactivateProduct(productId);
   }
-
-  async getWallet(userId) {
+const getWallet = async (userId) => {
     let wallet = await buyerRepository.getWalletByUserId(userId);
     if (!wallet) {
       wallet = await buyerRepository.createWallet(userId);
     }
     return wallet;
   }
-
-  async getWalletTransactions(userId) {
-    const wallet = await this.getWallet(userId);
+const getWalletTransactions = async (userId) => {
+    const wallet = await getWallet(userId);
     return buyerRepository.getWalletTransactions(wallet.id);
   }
-
-  async withdrawFunds(userId, amount) {
+const withdrawFunds = async (userId, amount) => {
     const amountNum = Number(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      throw { status: 400, message: "Jumlah penarikan tidak valid" };
-    }
-    const wallet = await this.getWallet(userId);
+    
+    const wallet = await getWallet(userId);
     return buyerRepository.withdrawTransaction(wallet.id, amountNum);
   }
-}
 
-module.exports = new SellerUseCase();
+module.exports = { upsertStore, getMyStore, getPublicStore, requireStore, createProduct, listMyProducts, updateProduct, deleteProduct, getWallet, getWalletTransactions, withdrawFunds };
+
+
