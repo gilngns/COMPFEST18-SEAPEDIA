@@ -36,7 +36,7 @@ export function useCart() {
     } catch (error) {
       return { 
         success: false, 
-        error: error.response?.data?.error || "Gagal menambahkan ke keranjang",
+        error: error.response?.data?.message || error.response?.data?.error || "Gagal menambahkan ke keranjang",
         code: error.response?.data?.code,
         status: error.response?.status
       };
