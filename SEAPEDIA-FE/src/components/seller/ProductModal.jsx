@@ -30,7 +30,7 @@ export default function ProductModal({ product, onClose, onSaved }) {
         unit: product.unit || "",
       });
       if (product.images && product.images.length > 0) {
-        setPreviews(product.images.map(img => `http://localhost:5000${img}`));
+        setPreviews(product.images.map(img => `\${img}`));
       }
     }
   }, [product]);

@@ -44,7 +44,7 @@ export default function SellerStore() {
           isOpen: store.isOpen !== false,
         });
         if (store.logoUrl) {
-          setLogoPreview(`http://localhost:5000${store.logoUrl}`);
+          setLogoPreview(`\${store.logoUrl}`);
         }
       }
     } catch (err) {

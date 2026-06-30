@@ -42,7 +42,7 @@ export default function SellerLayout({ children, storeName = "Toko Saya", storeL
         <div className="p-6 text-center border-b border-gray-100">
           <div className="w-16 h-16 mx-auto rounded-full bg-white border-2 border-seapedia flex items-center justify-center mb-3 shadow-sm overflow-hidden">
             {storeLogo ? (
-              <img src={`http://localhost:5000${storeLogo}`} alt="Store Logo" className="w-full h-full object-cover" />
+              <img src={`\${storeLogo}`} alt="Store Logo" className="w-full h-full object-cover" />
             ) : (
               <ShoppingBag className="w-7 h-7 text-seapedia" />
             )}

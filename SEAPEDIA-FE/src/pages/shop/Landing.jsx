@@ -12,7 +12,7 @@ import {
     Bell, ShoppingCart, User, Zap, ChevronRight, ChevronLeft,
     Check, Star, Tag, Truck, Smartphone, Monitor,
     Armchair, Baby, Sparkles, Car, Utensils, Gamepad2, Shirt,
-    Timer, Flame, Quote, Store, X
+    Timer, Flame, Quote, Store, X, ShoppingBag
 } from "lucide-react";
 
 function rupiah(n) {
@@ -22,7 +22,7 @@ function rupiah(n) {
 function getImageUrl(url, fallback) {
     if (!url) return fallback;
     if (url.startsWith("http")) return url;
-    return `http://localhost:5000${url}`;
+    return `\${url}`;
 }
 
 const CATEGORY_ICONS = {

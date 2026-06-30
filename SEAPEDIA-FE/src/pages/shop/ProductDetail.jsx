@@ -20,7 +20,7 @@ function rupiah(n) {
 function getImageUrl(url, fallback) {
     if (!url) return fallback;
     if (url.startsWith("http")) return url;
-    return `http://localhost:5000${url}`;
+    return `\${url}`;
 }
 
 const FALLBACK_IMAGES = [
