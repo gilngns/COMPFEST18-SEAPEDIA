@@ -143,6 +143,7 @@ Seeded automatically by `node seedAdmin.js`:
 | Admin  | `admin@seapedia.com`  | `password123` |
 | Buyer  | `joko@gmail.com`      | `password123` |
 | Seller | `hendri@gmail.com`    | `123123`      |
+| Seller | `anwar@gmail.com`    | `12345678`      |
 | Driver | `budi@gmail.com`      | `12345678`    |
 
 ---
@@ -154,7 +155,8 @@ Walk through the full marketplace flow:
 1. **Admin** (`admin@seapedia.com`) — view platform statistics and test **"Simulasikan Hari Esok (+1 Hari)"** to advance the virtual clock.
 2. **Buyer** (`joko@gmail.com`) — top up the wallet, add items from a single store, apply a voucher, and checkout. Submit an application review after completion.
 3. **Seller** (`hendri@gmail.com`) — open the Seller Dashboard, create a product, and accept the buyer's order in the **Pesanan** tab (moves it to *Menunggu Kurir*).
-4. **Driver** (`budi@gmail.com`) — switch role to Driver, take the shipment from **Cari Order**, mark it delivered, and check the **Finance** tab for the 100% delivery-fee earning.
+4. **Seller** (`anwar@gmail.com`) — open the Seller Dashboard, create a product, and accept the buyer's order in the **Pesanan** tab (moves it to *Menunggu Kurir*).
+5. **Driver** (`budi@gmail.com`) — switch role to Driver, take the shipment from **Cari Order**, mark it delivered, and check the **Finance** tab for the 100% delivery-fee earning.
 
 ---
 
