@@ -12,11 +12,6 @@ function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
 }
 
-function getImageUrl(url, fallback) {
-    if (!url) return fallback;
-    if (url.startsWith("http")) return url;
-    return `\${url}`;
-}
 
 const FALLBACK_IMAGES = [
     "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=90",
@@ -30,6 +25,7 @@ const FALLBACK_IMAGES = [
 ];
 
 import { useCatalog } from "../../hooks/usecases/useCatalog";
+import { getImageUrl } from "../../utils/image";
 
 const SORT_OPTIONS = ["Paling Sesuai", "Terbaru", "Harga: Rendah - Tinggi", "Harga: Tinggi - Rendah"];
 

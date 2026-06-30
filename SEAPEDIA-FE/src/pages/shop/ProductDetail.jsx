@@ -12,16 +12,12 @@ import PublicNavbar from "../../components/PublicNavbar";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../hooks/usecases/useCart";
 import { useCatalog } from "../../hooks/usecases/useCatalog";
+import { getImageUrl } from "../../utils/image";
 
 function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
 }
 
-function getImageUrl(url, fallback) {
-    if (!url) return fallback;
-    if (url.startsWith("http")) return url;
-    return `\${url}`;
-}
 
 const FALLBACK_IMAGES = [
     "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&q=90",

@@ -9,6 +9,7 @@ import { useCategories } from "../../hooks/usecases/useCategories";
 import { useReviews } from "../../hooks/usecases/useReviews";
 import Swal from "sweetalert2";
 import {
+import { getImageUrl } from "../../utils/image";
     Bell, ShoppingCart, User, Zap, ChevronRight, ChevronLeft,
     Check, Star, Tag, Truck, Smartphone, Monitor,
     Armchair, Baby, Sparkles, Car, Utensils, Gamepad2, Shirt,
@@ -19,11 +20,6 @@ function rupiah(n) {
     return "Rp " + Number(n || 0).toLocaleString("id-ID");
 }
 
-function getImageUrl(url, fallback) {
-    if (!url) return fallback;
-    if (url.startsWith("http")) return url;
-    return `\${url}`;
-}
 
 const CATEGORY_ICONS = {
     Shirt, Monitor, Gamepad2, Armchair, Baby, Sparkles, Car, Utensils

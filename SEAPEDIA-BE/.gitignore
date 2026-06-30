@@ -3,3 +3,9 @@ node_modules
 .env
 
 /generated/prisma
+
+# Uploaded files (jangan di-commit, jangan ke-wipe pas pull)
+public/uploads/*
+!public/uploads/products/
+public/uploads/products/*
+!public/uploads/products/.gitkeep

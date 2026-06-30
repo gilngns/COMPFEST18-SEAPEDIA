@@ -7,6 +7,10 @@ const routes = require("./routes");
 
 const app = express();
 
+// Di belakang reverse proxy (Nginx) — wajib biar Express baca X-Forwarded-Proto
+// dan menganggap koneksi HTTPS, sehingga cookie { secure: true } dikirim dengan benar.
+app.set("trust proxy", 1);
+
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true
