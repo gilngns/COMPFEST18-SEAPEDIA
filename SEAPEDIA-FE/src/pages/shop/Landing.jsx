@@ -8,8 +8,8 @@ import { useCatalog } from "../../hooks/usecases/useCatalog";
 import { useCategories } from "../../hooks/usecases/useCategories";
 import { useReviews } from "../../hooks/usecases/useReviews";
 import Swal from "sweetalert2";
-import {
 import { getImageUrl } from "../../utils/image";
+import {
     Bell, ShoppingCart, User, Zap, ChevronRight, ChevronLeft,
     Check, Star, Tag, Truck, Smartphone, Monitor,
     Armchair, Baby, Sparkles, Car, Utensils, Gamepad2, Shirt,
