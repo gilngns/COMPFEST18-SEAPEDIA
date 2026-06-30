@@ -457,7 +457,7 @@ export default function Landing() {
                         recommendedProducts.map((p, i) => (
                             <Link to={`/product/${p.id}`} key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgba(0,107,122,0.12)] hover:-translate-y-2 transition-all duration-500 p-4 cursor-pointer group flex flex-col h-full">
                                 <div className="relative aspect-square rounded-xl bg-gray-50 mb-4 overflow-hidden">
-                                    {p.store?.name?.toLowerCase().includes("official") && (
+                                    {p.store?.name?.toLowerCase()?.includes("official") && (
                                         <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-[#006B7A] text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-sm z-10 flex items-center gap-1">
                                             <Check className="w-3 h-3" /> Official
                                         </span>

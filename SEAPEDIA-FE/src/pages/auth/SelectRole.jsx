@@ -44,7 +44,7 @@ export default function SelectRole() {
   }
 
   async function choose(role) {
-    if (!user.roles.includes(role)) {
+    if (!user.roles?.includes(role)) {
       const confirm = await Swal.fire({
         title: "Tambah Peran?",
         text: `Anda belum terdaftar sebagai ${ROLE_INFO[role]?.title}. Ingin menambahkannya sekarang?`,
@@ -124,7 +124,7 @@ export default function SelectRole() {
         {ALL_ROLES.map((role) => {
           const info = ROLE_INFO[role];
           if (!info) return null;
-          const isOwned = user.roles.includes(role);
+          const isOwned = user.roles?.includes(role);
           return (
             <button
               key={role}

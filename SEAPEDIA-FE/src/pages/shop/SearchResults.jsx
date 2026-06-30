@@ -188,7 +188,7 @@ export default function SearchResults() {
                                             alt={p.name}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />
-                                        {p.store?.name?.toLowerCase().includes("official") && (
+                                        {p.store?.name?.toLowerCase()?.includes("official") && (
                                             <span className="absolute top-2 left-2 bg-white/90 text-[#006B7A] text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm flex items-center gap-0.5">
                                                 <Check className="w-2.5 h-2.5" /> Official
                                             </span>
@@ -221,7 +221,7 @@ export default function SearchResults() {
                                                     {p.store?.name?.charAt(0) || "S"}
                                                 </div>
                                                 <span className="text-[10px] text-gray-500 truncate">{p.store?.name || "Toko Bebas"}</span>
-                                                {p.store?.name?.toLowerCase().includes("official") && (
+                                                {p.store?.name?.toLowerCase()?.includes("official") && (
                                                     <Check className="w-3 h-3 text-[#006B7A] shrink-0" />
                                                 )}
                                             </div>

@@ -75,9 +75,9 @@ export default function BuyerOrders() {
 
   const filteredOrders = orders.filter((order) => {
     const query = searchQuery.toLowerCase();
-    const invoiceMatch = order.id.toLowerCase().includes(query);
+    const invoiceMatch = order.id?.toLowerCase()?.includes(query);
     const productMatch = order.items.some((item) =>
-      item.product.name.toLowerCase().includes(query)
+      item.product?.name?.toLowerCase()?.includes(query)
     );
     return invoiceMatch || productMatch;
   });

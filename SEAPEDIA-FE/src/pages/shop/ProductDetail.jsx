@@ -138,7 +138,7 @@ export default function ProductDetail() {
         getImageUrl(product.images?.[1], FALLBACK_IMAGES[1]),
         getImageUrl(product.images?.[2], FALLBACK_IMAGES[2])
     ];
-    const isMall = product.store?.name?.toLowerCase().includes("official");
+    const isMall = product.store?.name?.toLowerCase()?.includes("official");
     const sellerInitial = product.store?.name?.charAt(0) || "S";
     const defaultFeatures = [
         "100% Produk Original",
