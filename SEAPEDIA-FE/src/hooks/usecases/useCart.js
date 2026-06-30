@@ -37,7 +37,8 @@ export function useCart() {
       return { 
         success: false, 
         error: error.response?.data?.error || "Gagal menambahkan ke keranjang",
-        code: error.response?.data?.code
+        code: error.response?.data?.code,
+        status: error.response?.status
       };
     }
   };

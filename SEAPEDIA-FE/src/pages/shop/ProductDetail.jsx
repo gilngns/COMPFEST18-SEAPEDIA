@@ -63,7 +63,7 @@ export default function ProductDetail() {
             const result = await addToCart(product.id, quantity);
             
             if (!result.success) {
-                throw { response: { status: result.code === "DIFFERENT_STORE" ? 409 : 400, data: { message: result.error, error: result.error } } };
+                throw { response: { status: result.status || (result.code === "DIFFERENT_STORE" ? 409 : 400), data: { message: result.error, error: result.error } } };
             }
             if (!isBuyNow) {
                 Swal.fire({
