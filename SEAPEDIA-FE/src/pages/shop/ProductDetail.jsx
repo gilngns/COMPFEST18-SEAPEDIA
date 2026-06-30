@@ -313,16 +313,32 @@ export default function ProductDetail() {
                                     <input 
                                         type="number" 
                                         value={quantity}
-                                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value) || 1;
+                                            const itemInCart = cart?.items?.find(item => item.product.id === product?.id);
+                                            const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+                                            const maxAvail = product.stock - qtyInCart;
+                                            setQuantity(Math.min(Math.max(1, val), Math.max(1, maxAvail)));
+                                        }}
                                         className="w-12 text-center text-sm font-bold text-gray-800 outline-none hide-arrows" 
                                     />
                                     <button 
-                                        onClick={() => setQuantity(quantity + 1)}
+                                        onClick={() => {
+                                            const itemInCart = cart?.items?.find(item => item.product.id === product?.id);
+                                            const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+                                            const maxAvail = product.stock - qtyInCart;
+                                            if (quantity < maxAvail) setQuantity(quantity + 1);
+                                        }}
                                         className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-[#006B7A] hover:bg-gray-50 rounded"
                                     >
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 </div>
+                                {cart?.items?.find(item => item.product.id === product?.id) && (
+                                    <span className="text-xs text-gray-500 font-medium">
+                                        (Ada {cart.items.find(item => item.product.id === product.id).quantity} di keranjang)
+                                    </span>
+                                )}
                             </div>
                             {(!user || user.activeRole === "BUYER") && (
                                 <div className="flex gap-3">
