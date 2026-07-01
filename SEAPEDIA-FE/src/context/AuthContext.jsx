@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services/authService";
 
 const AuthContext = createContext();
@@ -6,6 +7,8 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     authService.getMe()
@@ -28,9 +31,9 @@ export function AuthProvider({ children }) {
       await authService.logout();
     } finally {
       setUser(null);
-      const path = window.location.pathname;
+      const path = location.pathname;
       if (path !== "/" && path !== "/search" && !path.startsWith("/product") && path !== "/catalog") {
-        window.location.href = "/login";
+        navigate("/");
       }
     }
   }

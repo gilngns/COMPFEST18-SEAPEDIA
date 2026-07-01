@@ -55,8 +55,8 @@ function Dashboard() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <ScrollToTop />
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -170,7 +170,7 @@ export default function App() {
           } />
           <Route path="/" element={<Landing />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

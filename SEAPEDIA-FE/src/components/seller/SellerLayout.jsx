@@ -31,7 +31,7 @@ export default function SellerLayout({ children, storeName = "Toko Saya", storeL
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    navigate("/");
   }
 
   return (
