@@ -130,7 +130,7 @@ The frontend will be available at the URL printed by Vite (typically `http://loc
 
 The API is fully documented with **Swagger UI**. With the backend running, open:
 
-> **http://localhost:5000/api-docs**
+> **https://seapediacompfest.my.id/api-docs**
 
 ---
 
