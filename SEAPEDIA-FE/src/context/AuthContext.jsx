@@ -10,7 +10,8 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     authService.getMe()
       .then((res) => {
-        setUser({ ...res.data, activeRole: res.activeRole });
+        const { profile, activeRole } = res.data;
+        setUser({ ...profile, activeRole });
       })
       .catch(() => {
         setUser(null);
